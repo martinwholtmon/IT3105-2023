@@ -1,39 +1,94 @@
-"""This module will handle all the interaction with the game of Hex. 
-It is essentially the gym environment for the game of Hex
+"""This module will handle all the interaction with the games
+It is essentially the gym environment for the games
 """
-import numpy as np
+from abc import ABC, abstractmethod
 
 
-class ActionSpace:
-    def __init__(self) -> None:
-        space: list[int] = None
+class State(ABC):
+    """Abstract class for the game state
 
-    def sample(self) -> int:
-        raise NotImplementedError
+    Args:
+        ABC (ABC): Helper class that provides a standard way to create an ABC using inheritance
+    """
 
+    @abstractmethod
+    def get_state(self):
+        """Return the current game state"""
 
-class ObservationSpace:
-    def __init__(self) -> None:
-        space: State = None
+    @abstractmethod
+    def perform_action(self, action):
+        """Perform an action in the state"""
 
+    @abstractmethod
+    def sample(self, player) -> any:
+        """Return a random legal action for the player
 
-class State:
-    """Element of ObservationSpace representing the current game state"""
+        Args:
+            player (int): The current player
+        """
 
-    pass
+    @abstractmethod
+    def get_legal_actions(self, player) -> list[any]:
+        """Generate a list of legal actions for the current player
+
+        Returns:
+            list[any]: List of legal actions
+        """
+
+    @abstractmethod
+    def is_terminated(self) -> bool:
+        """Check if the game is finished
+
+        Returns:
+            bool: Game is finished
+        """
+
+    @abstractmethod
+    def get_reward(self, player) -> float:
+        """Get the reward
+
+        Returns:
+            float: the reward
+        """
+
+    @abstractmethod
+    def reset(self, seed):
+        """Resets the game"""
 
 
 class Env:
-    def __init__(self) -> None:
-        action_space: ActionSpace = None
-        observation_space: ObservationSpace = None
+    """The game environment where players can perform steps"""
 
-    def reset(seed: int = None) -> State:
-        raise NotImplementedError
+    def __init__(self, state: State) -> None:
+        self.state: State = state
+        self.current_player = 1
+        self.n_players = 2
 
-    def step(action: int) -> tuple[State, float, bool]:
-        raise NotImplementedError
+    def step(self, action) -> tuple[State, float, bool]:
+        """Perform a step in the game
 
+        Args:
+            action (any): Action to perform
 
-def get_environment() -> Env:
-    raise NotImplementedError
+        Returns:
+            tuple[State, float, bool]: new_state, reward, is_terminated
+        """
+        self.state.perform_action(action)
+        reward = self.state.get_reward(self.current_player)
+
+        # Update player and return
+        self.current_player = (self.current_player % self.n_players) + 1
+        return self.state.get_state(), reward, self.state.is_terminated()
+
+    def reset(self, seed: int = None) -> State:
+        """Reset the game to an initial game state. If nessesary, introduces randomness.
+
+        Args:
+            seed (int, optional): If you want consistent randomness. Defaults to None.
+
+        Returns:
+            State: The new state
+        """
+        self.current_player = 1
+        self.state.reset(seed)
+        return self.state
