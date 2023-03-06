@@ -49,6 +49,16 @@ class Nim:
             self.is_terminated(),
         )
 
+    def reset(self) -> int:
+        """Reset the game state to an initial state
+
+        Returns:
+            int: The new game state
+        """
+        self.current_player = 1
+        self.current_state = self.initial_pieces
+        return self.current_state
+
     def sample(self) -> int:
         """Return a random legal action
 
