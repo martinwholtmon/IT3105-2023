@@ -1,6 +1,7 @@
 """This module will contain the MCTS algorithm"""
 from __future__ import annotations
 import copy
+import numpy as np
 from state_manager import State
 from neural_net import ANET
 
@@ -44,7 +45,14 @@ class Node:
         Returns:
             Node: The child node
         """
-        return NotImplementedError
+        # UCB1 formula
+        scores = [
+            (child.value / child.num_visits)
+            + exploration_factor * np.sqrt(np.log(self.num_visits) / child.num_visits)
+            for child in self.children
+        ]
+        return self.children[np.argmax(scores)]
+
     def expand(self) -> Node:
         """Expand child states
 
