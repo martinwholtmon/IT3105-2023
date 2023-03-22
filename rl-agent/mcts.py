@@ -170,3 +170,7 @@ def backpropagation(node: Node, reward: float):
         node (Node): The leaf node
         reward (float): Reward after leaf evaluation
     """
+    while node is not None:
+        node.update(reward)
+        node = node.parent
+        reward = -reward
