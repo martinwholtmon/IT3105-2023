@@ -73,3 +73,85 @@ class Node:
         """
         self.value += reward
         self.num_visits += 1
+
+
+def mcts(
+    state: State, policy: ANET, simulations: int, exploration_factor: float
+) -> any:
+    """Run the MCTS algorithm with M simulations to select the best action to perform
+
+    Args:
+        state (State): The state space
+        policy (ANET): The policy used to select actions
+        simulations (int): Number of simulations
+        exploration_factor (float):
+
+    Returns:
+        any: Action to perform
+    """
+    # Take a deepcopy of the current state.
+    # If it use a lot of memory, create own copy function for each game (implements State)
+    root = Node(state)
+
+    # Run MCTS
+    for _ in range(simulations):
+        node = root
+        current_state = copy.deepcopy(state)
+
+        # Select action
+        tree_search(node, current_state, exploration_factor)
+
+        # Expansion
+        node_expansion(node, current_state)
+
+        # Simulate action (expansion) and rollout
+        reward = leaf_evaluation(current_state, policy)
+
+        # Backpropagate results through tree
+        backpropagation(node, reward)
+
+    # Choose the best action
+    raise NotImplementedError
+
+
+def tree_search(node: Node, state: State, exploration_factor: float):
+    """Traversing the tree from the root to a leaf node by using the tree policy
+
+    Args:
+        node (Node): Node in the MCTS tree
+        state (State): Current game state
+        exploration_factor (float): How explorative the selection will be
+    """
+    raise NotImplementedError
+def node_expansion(node: Node, state: State):
+    """Generating some or all child states of a parent state,
+    and then connecting the tree node housing the parent state (a.k.a. parent node)
+    to the nodes housing the child states (a.k.a. child nodes).
+
+    Args:
+        node (Node): Node in the MCTS tree
+        state (State): Current game state
+    """
+    raise NotImplementedError
+def leaf_evaluation(state: State, policy: ANET) -> float:
+    """Estimating the value of a leaf node in the tree by doing
+    a rollout simulation using the default policy from the leaf
+    node's state to a final state.
+
+    Args:
+        state (State): Current game state
+        policy (ANET): The neural network used to get the actions probability distributions
+
+    Returns:
+        float: The reward
+    """
+    raise NotImplementedError
+def backpropagation(node: Node, reward: float):
+    """Passing the evaluation of a final state back up the tree,
+    updating relevant data at all nodes and edges on the path from
+    the final state to the tree root.
+
+    Args:
+        node (Node): The leaf node
+        reward (float): Reward after leaf evaluation
+    """
