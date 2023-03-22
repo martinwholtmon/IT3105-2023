@@ -137,7 +137,11 @@ def node_expansion(node: Node, state: State):
         node (Node): Node in the MCTS tree
         state (State): Current game state
     """
-    raise NotImplementedError
+    if not node.fully_expanded() and not state.is_terminated():
+        node = node.expand()
+        state.perform_action(node.action)
+
+
 def leaf_evaluation(state: State, policy: ANET) -> float:
     """Estimating the value of a leaf node in the tree by doing
     a rollout simulation using the default policy from the leaf
