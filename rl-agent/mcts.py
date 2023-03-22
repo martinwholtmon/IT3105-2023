@@ -154,7 +154,13 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
     Returns:
         float: The reward
     """
-    raise NotImplementedError
+    while not state.is_terminated():
+        action_probabilities = policy.predict(state)
+        action = np.random.choice(len(action_probabilities), p=action_probabilities)
+        state.perform_action(action)
+    return state.get_reward()
+
+
 def backpropagation(node: Node, reward: float):
     """Passing the evaluation of a final state back up the tree,
     updating relevant data at all nodes and edges on the path from
