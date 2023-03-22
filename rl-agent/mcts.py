@@ -112,7 +112,8 @@ def mcts(
         backpropagation(node, reward)
 
     # Choose the best action
-    raise NotImplementedError
+    visits = [child.num_visits for child in root.children]
+    return node.children[np.argmax(visits)].action
 
 
 def tree_search(node: Node, state: State, exploration_factor: float):
