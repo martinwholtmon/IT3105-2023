@@ -122,7 +122,12 @@ def tree_search(node: Node, state: State, exploration_factor: float):
         state (State): Current game state
         exploration_factor (float): How explorative the selection will be
     """
-    raise NotImplementedError
+    # Select best child and perform the action to current state
+    while not node.is_leaf() and node.fully_expanded():
+        node = node.select_child(exploration_factor)
+        state.perform_action(node.action)
+
+
 def node_expansion(node: Node, state: State):
     """Generating some or all child states of a parent state,
     and then connecting the tree node housing the parent state (a.k.a. parent node)
