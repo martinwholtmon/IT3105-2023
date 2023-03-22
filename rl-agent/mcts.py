@@ -1,5 +1,6 @@
 """This module will contain the MCTS algorithm"""
 from __future__ import annotations
+import copy
 from state_manager import State
 from neural_net import ANET
 
@@ -50,7 +51,12 @@ class Node:
         Returns:
             Node: Child node for the next game state
         """
-        return NotImplementedError
+        action = self.untried_actions.pop()
+        next_state = copy.deepcopy(self.state).perform_action(action)
+        child_node = Node(next_state, parent=self, action=action)
+        self.children.append(child_node)
+        return child_node
+
     def update(self, reward):
         """Update the value and visit
 
