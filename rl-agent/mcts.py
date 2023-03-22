@@ -45,10 +45,11 @@ class Node:
         Returns:
             Node: The child node
         """
-        # UCB1 formula
+        # UCT formula
         scores = [
             (child.value / child.num_visits)
-            + exploration_factor * np.sqrt(np.log(self.num_visits) / child.num_visits)
+            + exploration_factor
+            * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
             for child in self.children
         ]
         return self.children[np.argmax(scores)]
