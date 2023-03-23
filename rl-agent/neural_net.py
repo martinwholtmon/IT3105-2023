@@ -60,7 +60,7 @@ class ANET(nn.Module):
         raise NotImplementedError
 
     def forward(self, x):
-        raise NotImplementedError
+        return scale_output(self.layers(state_to_tensor(x)))
 
     def update(self):
         raise NotImplementedError
