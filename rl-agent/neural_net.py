@@ -2,7 +2,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from helpers import is_sequence_of_type
 
 
@@ -20,7 +19,7 @@ class ANET(nn.Module):
             input_shape (tuple[int, int]): Shape of input params/features
             hidden_units (list[int]): Number of units (neurons) per layer
             output_shape (tuple[int, int]): Shape of max output params (largest action space)
-            activation_function (str): Activation function to use: linear, sigmoid, yanh, RELU
+            activation_function (str): Activation function to use: linear, sigmoid, tanh, RELU
         """
         # Inherit from nn.Module
         super(ANET, self).__init__()
@@ -31,35 +30,43 @@ class ANET(nn.Module):
         is_sequence_of_type("output_shape", output_shape, tuple, int, min=1, max=2)
 
         # Set params
-        self.activation_function = activation_function
+        self.activation_function = set_activation_class(activation_function)
 
-        # Define input layer
-        self.input_layer = nn.Linear(np.multiply.reduce(input_shape), hidden_units[0])
+        # Add layers
+        modules = []
 
-        # Define hidden layers
-        self.hidden_layers = nn.ModuleList()
+        # input layer
+        modules.append(nn.Linear(np.multiply.reduce(input_shape), hidden_units[0]))
+
+        # hidden layers
         if len(hidden_units) == 1:
-            self.hidden_layers.append(nn.Linear(hidden_units[0], hidden_units[0]))
+            modules.append(nn.Linear(hidden_units[0], hidden_units[0]))
+            if self.activation_function is not None:
+                modules.append(self.activation_function)
         else:
             for i, j in zip(hidden_units, hidden_units[1:]):
-                self.hidden_layers.append(nn.Linear(i, j))
+                modules.append(nn.Linear(i, j))
+                if self.activation_function is not None:
+                    modules.append(self.activation_function)
 
-        # Define output layer
-        self.output_layer = nn.Linear(
-            hidden_units[-1], np.multiply.reduce(output_shape)
-        )
+        # output layer
+        modules.append(nn.Linear(hidden_units[-1], np.multiply.reduce(output_shape)))
+        modules.append(nn.Softmax())
+
+        # Define the model
+        self.layers = nn.Sequential(*modules)
 
     def predict(self, state) -> any:
         raise NotImplementedError
 
-    def forward(self):
+    def forward(self, x):
         raise NotImplementedError
 
     def update(self):
         raise NotImplementedError
 
 
-def state_to_tensor() -> torch.Tensor:
+def state_to_tensor(state) -> torch.Tensor:
     """Converts a state to a tensor
 
     Returns:
@@ -68,7 +75,7 @@ def state_to_tensor() -> torch.Tensor:
     raise NotImplementedError
 
 
-def scale_output() -> np.ndarray:
+def scale_output(x) -> np.ndarray:
     """The output layer must have a fixed number of outputs
     even though there might not be so many avaiable actions.
     From any given state, there is a reduced number of legal actions.
@@ -81,3 +88,27 @@ def scale_output() -> np.ndarray:
         np.ndarray: Probability distribution for the legal actions
     """
     raise NotImplementedError
+
+
+def set_activation_class(activation_function: str) -> callable:
+    """Set the activation function for the layers: linear, sigmoid, tanh, or RELU
+
+    Args:
+        activation_function (str): The activation function
+
+    Returns:
+        callable: The functional interface for the selected activation function
+    """
+    match activation_function.lower():
+        case "linear":
+            return None
+        case "sigmoid":
+            return nn.Sigmoid()
+        case "tanh":
+            return nn.Tanh()
+        case "RELU":
+            return nn.ReLU()
+        case _:
+            raise ValueError(
+                f"{activation_function} is not supported, please use a supported activation function: linear, sigmoid, tanh, or RELU"
+            )
