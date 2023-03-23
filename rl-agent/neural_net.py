@@ -67,12 +67,14 @@ class ANET(nn.Module):
 
 
 def state_to_tensor(state) -> torch.Tensor:
-    """Converts a state to a tensor
+    """Converts a state to a tensor.
+    Flatten the tensor - in case of ndarray of 2+d
+    Convert it to floats: PyTorch parameters expect float32 input
 
     Returns:
         torch.Tensor: game state as a tensor
     """
-    return torch.from_numpy(state)
+    return torch.from_numpy(state).flatten().float()
 
 
 def scale_output(x) -> np.ndarray:
