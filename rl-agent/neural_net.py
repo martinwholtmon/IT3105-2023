@@ -72,7 +72,7 @@ def state_to_tensor(state) -> torch.Tensor:
     Returns:
         torch.Tensor: game state as a tensor
     """
-    raise NotImplementedError
+    return torch.from_numpy(state)
 
 
 def scale_output(x) -> np.ndarray:
