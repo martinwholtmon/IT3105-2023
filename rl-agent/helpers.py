@@ -24,7 +24,7 @@ def is_sequence_of_type(
     list_elements_ok, err = _check_list_elements(sequence, element_type)
     if not list_elements_ok:
         raise ValueError(f"{param_name}: {err}")
-    list_size_ok, err = _check_length(list, max, min)
+    list_size_ok, err = _check_length(sequence, max, min)
     if not list_size_ok:
         raise ValueError(f"{param_name}: {err}")
 
