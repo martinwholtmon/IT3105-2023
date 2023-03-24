@@ -62,6 +62,9 @@ class ANET(nn.Module):
 
     def predict(self, state: State) -> any:
         prediction = self.forward(state.get_state())
+        return scale_prediction(
+            prediction, state.get_legal_actions(), state.get_all_actions()
+        )
 
     def forward(self, x: np.ndarray):
         """Do a forward pass in the network to predict a state
@@ -104,7 +107,9 @@ def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
     return tensor.detach().numpy()
 
 
-def scale_prediction(x) -> np.ndarray:
+def scale_prediction(
+    x: np.ndarray, legal_actions: np.ndarray, all_actions: np.ndarray
+) -> np.ndarray:
     """The output layer must have a fixed number of outputs
     even though there might not be so many avaiable actions.
     From any given state, there is a reduced number of legal actions.
@@ -113,10 +118,20 @@ def scale_prediction(x) -> np.ndarray:
     Illegal moves will be set to zero.
     Remaining moves will be re-nomralized to a sum of 1.
 
+    Args:
+        x (np.ndarray): Probability distribution for all possible actions
+        legal_actions (np.ndarray): list of legal actions
+
     Returns:
-        np.ndarray: Probability distribution for the legal actions
+        np.ndarray:  Probability distribution for the legal actions
     """
-    raise NotImplementedError
+    # Set predictions of illegal actions to 0
+    illegal_actions = np.isin(all_actions, legal_actions).astype(int)  # mask of 0 and 1
+    x = np.multiply(x, illegal_actions)
+
+    # Normalize
+    x = x / np.linalg.norm(x)
+    return x
 
 
 def set_activation_class(activation_function: str) -> callable:
