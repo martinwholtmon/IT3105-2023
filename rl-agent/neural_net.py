@@ -61,9 +61,10 @@ class ANET(nn.Module):
         self.loss_function = nn.CrossEntropyLoss()
 
     def predict(self, state: State) -> any:
-        prediction = self.forward(state.get_state())
         return scale_prediction(
-            prediction, state.get_legal_actions(), state.get_all_actions()
+            self.forward(state.get_state()),
+            state.get_legal_actions(),
+            state.get_all_actions(),
         )
 
     def forward(self, x: np.ndarray):
