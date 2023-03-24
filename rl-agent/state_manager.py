@@ -2,6 +2,7 @@
 It is essentially the gym environment for the games
 """
 from abc import ABC, abstractmethod
+import numpy as np
 
 
 class State(ABC):
@@ -12,7 +13,7 @@ class State(ABC):
     """
 
     @abstractmethod
-    def get_state(self):
+    def get_state(self) -> np.ndarray:
         """Return the current game state"""
 
     @abstractmethod
@@ -28,11 +29,19 @@ class State(ABC):
         """
 
     @abstractmethod
-    def get_legal_actions(self, player) -> list[any]:
+    def get_legal_actions(self, player) -> np.ndarray:
         """Generate a list of legal actions for the current player
 
         Returns:
             list[any]: List of legal actions
+        """
+
+    @abstractmethod
+    def get_all_actions(self) -> np.ndarray:
+        """Return the list of all actions
+
+        Returns:
+            np.ndarray: List of actions
         """
 
     @abstractmethod

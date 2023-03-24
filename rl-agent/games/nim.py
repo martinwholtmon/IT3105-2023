@@ -1,6 +1,7 @@
 """Define the game state for Nim
 """
 import random
+import numpy as np
 from state_manager import State
 
 
@@ -27,8 +28,11 @@ class Nim(State):
         self.initial_pieces = N
         self.max_remove_pieces = K
         self.current_state = self.initial_pieces
+        self.actions = [
+            i for i in range(1, min(self.max_remove_pieces, self.initial_pieces) + 1)
+        ]
 
-    def get_state(self):
+    def get_state(self) -> np.ndarray:
         """Return the current game state"""
         return self.current_state
 
@@ -44,7 +48,7 @@ class Nim(State):
         """
         random.choice(self.get_legal_actions(player))
 
-    def get_legal_actions(self, player) -> list[any]:
+    def get_legal_actions(self, player) -> np.ndarray:
         """Generate a list of legal actions for the current player
 
         Returns:
@@ -53,6 +57,14 @@ class Nim(State):
         return [
             i for i in range(1, min(self.max_remove_pieces, self.current_state) + 1)
         ]
+
+    def get_all_actions(self) -> np.ndarray:
+        """Return the list of all actions
+
+        Returns:
+            np.ndarray: List of actions
+        """
+        return self.actions
 
     def is_terminated(self) -> bool:
         """Check if the game is finished
