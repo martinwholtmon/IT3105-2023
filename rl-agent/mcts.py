@@ -46,13 +46,22 @@ class Node:
             Node: The child node
         """
         # UCT formula
-        scores = [
-            (child.value / child.num_visits if child.num_visits else 0)
-            + exploration_factor
-            * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
-            for child in self.children
-        ]
-        return self.children[np.argmax(scores)]
+        if self.state.current_player == 1:  # player 1 -> Maximize
+            scores = [
+                (child.value / child.num_visits if child.num_visits else 0)
+                + exploration_factor
+                * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
+                for child in self.children
+            ]
+            return self.children[np.argmax(scores)]
+        else:  # player 2 -> Minimize
+            scores = [
+                (child.value / child.num_visits if child.num_visits else 0)
+                - exploration_factor
+                * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
+                for child in self.children
+            ]
+            return self.children[np.argmin(scores)]
 
     def expand(self) -> Node:
         """Expand child states
@@ -112,7 +121,7 @@ def mcts(
         # Backpropagate results through tree
         backpropagation(node, reward)
 
-    # Choose the best action
+    # Choose the best action -> action with most visits
     visits = [child.num_visits for child in root.children]
     return node.children[np.argmax(visits)].action
 
@@ -176,4 +185,4 @@ def backpropagation(node: Node, reward: float):
     while node is not None:
         node.update(reward)
         node = node.parent
-        reward = -reward
+        reward -= reward  # negate the reward because it's a min-max kind of situation
