@@ -25,6 +25,7 @@ class Nim(State):
             N (int): Number of initial pieces
             K (int): Maximum number of pieces that a player is allowed to remove at once
         """
+        super().__init__()
         self.initial_pieces = N
         self.max_remove_pieces = K
         self.current_state = np.array([self.initial_pieces])
@@ -32,13 +33,10 @@ class Nim(State):
             i for i in range(1, min(self.max_remove_pieces, self.initial_pieces) + 1)
         ]
 
-    def get_state(self) -> np.ndarray:
-        """Return the current game state"""
-        return self.current_state
-
     def perform_action(self, action):
         """Perform an action in the state"""
         self.current_state[0] -= action
+        self.next_player()
 
     def sample(self) -> any:
         """Return a random legal action"""
@@ -54,14 +52,6 @@ class Nim(State):
             i for i in range(1, min(self.max_remove_pieces, self.current_state[0]) + 1)
         ]
 
-    def get_all_actions(self) -> list[any]:
-        """Return the list of all actions
-
-        Returns:
-            list[any]: List of actions
-        """
-        return self.actions
-
     def is_terminated(self) -> bool:
         """Check if the game is finished
 
@@ -70,16 +60,7 @@ class Nim(State):
         """
         return self.current_state[0] == 0
 
-    def get_reward(self) -> float:
-        """Get the reward
-
-        Returns:
-            float: the reward
-        """
-        if self.is_terminated():
-            return 1
-        return 0
-
     def reset(self, seed):
         """Resets the game"""
         self.current_state[0] = self.initial_pieces
+        self.current_player = 1
