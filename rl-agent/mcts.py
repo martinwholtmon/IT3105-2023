@@ -113,10 +113,10 @@ def mcts(
         current_state = copy.deepcopy(state)
 
         # Select action
-        tree_search(node, current_state, exploration_factor)
+        node, current_state = tree_search(node, current_state, exploration_factor)
 
         # Expansion
-        node_expansion(node, current_state)
+        node, current_state = node_expansion(node, current_state)
 
         # Simulate action (expansion) and rollout
         reward = leaf_evaluation(current_state, policy)
@@ -127,7 +127,7 @@ def mcts(
     # Choose the best action -> action with most visits
     action_visits = [child.num_visits for child in root.children]
     action_visits = action_visits / np.sum(action_visits)  # Normalized
-    return node.children[np.argmax(action_visits)].action, action_visits
+    return root.children[np.argmax(action_visits)].action, action_visits
 
 
 def tree_search(node: Node, state: State, exploration_factor: float):
@@ -137,11 +137,15 @@ def tree_search(node: Node, state: State, exploration_factor: float):
         node (Node): Node in the MCTS tree
         state (State): Current game state
         exploration_factor (float): How explorative the selection will be
+
+    Returns:
+        tuple[Node, State]: leaf node, state that has action along the path applied
     """
     # Select best child and perform the action to current state
     while not node.is_leaf() and node.fully_expanded():
         node = node.select_child(exploration_factor)
         state.perform_action(node.action)
+    return node, state
 
 
 def node_expansion(node: Node, state: State):
@@ -152,10 +156,14 @@ def node_expansion(node: Node, state: State):
     Args:
         node (Node): Node in the MCTS tree
         state (State): Current game state
+
+    Returns:
+        tuple[Node, State]: new child node, state with action for child node performed
     """
     if not node.fully_expanded() and not state.is_terminated():
         node = node.expand()
         state.perform_action(node.action)
+    return node, state
 
 
 def leaf_evaluation(state: State, policy: ANET) -> float:
