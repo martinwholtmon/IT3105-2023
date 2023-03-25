@@ -88,7 +88,7 @@ class Node:
 
 def mcts(
     state: State, policy: ANET, simulations: int, exploration_factor: float
-) -> any:
+) -> tuple[any, np.ndarray]:
     """Run the MCTS algorithm with M simulations to select the best action to perform
 
     Args:
@@ -98,7 +98,10 @@ def mcts(
         exploration_factor (float):
 
     Returns:
-        any: Action to perform
+        tuple[any, np.ndarray]:
+            any: Action to perform
+            np.ndarray: Action probabilities -> visit count normalized
+
     """
     # Take a deepcopy of the current state.
     # If it use a lot of memory, create own copy function for each game (implements State)
@@ -122,8 +125,9 @@ def mcts(
         backpropagation(node, reward)
 
     # Choose the best action -> action with most visits
-    visits = [child.num_visits for child in root.children]
-    return node.children[np.argmax(visits)].action
+    action_visits = [child.num_visits for child in root.children]
+    action_visits = action_visits / np.sum(action_visits)  # Normalized
+    return node.children[np.argmax(action_visits)].action, action_visits
 
 
 def tree_search(node: Node, state: State, exploration_factor: float):

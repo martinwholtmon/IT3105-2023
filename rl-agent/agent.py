@@ -38,17 +38,16 @@ class RLAgent:
 
             while not terminated:
                 # Select action
-                action = self.policy.select_action(state)
+                action, action_probabilities = self.policy.select_action(state)
 
+                # Add to replay buffer
+                self.env.rbuf.append((state, action_probabilities))
+
+                # Perform action
                 print(
                     f"Epoch {episode_length}: State={state.get_state()}, selected action={action}"
                 )
-
-                # Perform action
                 next_state, reward, terminated = self.env.step(action)
-
-                # Update policy
-                # self.policy.update(state, action, next_state, reward)
 
                 # Update score and state
                 cumulative_rewards += reward
@@ -56,6 +55,8 @@ class RLAgent:
                 state = next_state
 
                 # TODO: (opt) Adjusting epsilon: start high -> reduce
+
+            # Episode is done, update
 
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"

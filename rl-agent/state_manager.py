@@ -81,6 +81,7 @@ class Env:
 
     def __init__(self, state: State) -> None:
         self.state: State = state
+        self.rbuf = []
 
     def step(self, action) -> tuple[State, float, bool]:
         """Perform a step in the game
@@ -105,4 +106,5 @@ class Env:
             State: The new state
         """
         self.state.reset(seed)
+        self.rbuf = []
         return self.state
