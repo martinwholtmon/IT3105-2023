@@ -38,7 +38,7 @@ class Nim(State):
 
     def perform_action(self, action):
         """Perform an action in the state"""
-        self.current_state -= action
+        self.current_state[0] -= action
 
     def sample(self) -> any:
         """Return a random legal action"""
@@ -51,7 +51,7 @@ class Nim(State):
             list[any]: List of legal actions
         """
         return [
-            i for i in range(1, min(self.max_remove_pieces, self.current_state) + 1)
+            i for i in range(1, min(self.max_remove_pieces, self.current_state[0]) + 1)
         ]
 
     def get_all_actions(self) -> list[any]:
@@ -68,9 +68,9 @@ class Nim(State):
         Returns:
             bool: Game is finished
         """
-        return self.current_state == 0
+        return self.current_state[0] == 0
 
-    def get_reward(self, player) -> float:
+    def get_reward(self) -> float:
         """Get the reward
 
         Returns:
@@ -82,4 +82,4 @@ class Nim(State):
 
     def reset(self, seed):
         """Resets the game"""
-        self.current_state = self.initial_pieces
+        self.current_state[0] = self.initial_pieces
