@@ -25,7 +25,7 @@ class State(ABC):
         """Return a random legal action"""
 
     @abstractmethod
-    def get_legal_actions(self) -> np.ndarray:
+    def get_legal_actions(self) -> list[any]:
         """Generate a list of legal actions for the current player
 
         Returns:
@@ -33,11 +33,11 @@ class State(ABC):
         """
 
     @abstractmethod
-    def get_all_actions(self) -> np.ndarray:
+    def get_all_actions(self) -> list[any]:
         """Return the list of all actions
 
         Returns:
-            np.ndarray: List of actions
+            list[any]: List of actions
         """
 
     @abstractmethod
