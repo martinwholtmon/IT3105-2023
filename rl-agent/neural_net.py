@@ -142,7 +142,7 @@ def scale_prediction(
     x = np.multiply(x, illegal_actions)
 
     # Normalize
-    x = x / np.linalg.norm(x)
+    x = x / np.sum(x)
     return x
 
 
