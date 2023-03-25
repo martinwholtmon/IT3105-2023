@@ -7,6 +7,8 @@ from state_manager import State
 
 
 class ANET(nn.Module):
+    """Class for the neural network"""
+
     def __init__(
         self,
         input_shape: tuple[int, int],
@@ -60,7 +62,15 @@ class ANET(nn.Module):
         # Define the loss function
         self.loss_function = nn.CrossEntropyLoss()
 
-    def predict(self, state: State) -> any:
+    def predict(self, state: State) -> np.ndarray:
+        """Given a state, return the action probabilities for all actions in the game
+
+        Args:
+            state (State): game state
+
+        Returns:
+            np.ndarray: action probabilities
+        """
         return scale_prediction(
             self.forward(state.get_state()),
             state.get_legal_actions(),
@@ -68,7 +78,8 @@ class ANET(nn.Module):
         )
 
     def forward(self, x: np.ndarray):
-        """Do a forward pass in the network to predict a state
+        """Do a forward pass in the network and return predictions.
+        2d games will be converted to 1d array
 
         Args:
             x (np.ndarray): game state
@@ -100,10 +111,10 @@ def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
     """Convert a tensor to a numpy representation
 
     Args:
-        tensor (torch.Tensor): _description_
+        tensor (torch.Tensor): Action probabilities from the network
 
     Returns:
-        np.ndarray: _description_
+        np.ndarray: action probabilities
     """
     return tensor.detach().numpy()
 
