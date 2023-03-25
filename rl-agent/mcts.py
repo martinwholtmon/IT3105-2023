@@ -62,7 +62,7 @@ class Node:
         """
         action = self.untried_actions.pop()
         next_state = copy.deepcopy(self.state).perform_action(action)
-        child_node = Node(next_state, parent=self, action=action)
+        child_node = Node(state=next_state, parent=self, action=action)
         self.children.append(child_node)
         return child_node
 
@@ -158,7 +158,7 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
     """
     while not state.is_terminated():
         action_probabilities = policy.predict(state)
-        action = np.random.choice(len(action_probabilities), p=action_probabilities)
+        action = np.random.choice(state.get_all_actions(), p=action_probabilities)
         state.perform_action(action)
     return state.get_reward()
 
