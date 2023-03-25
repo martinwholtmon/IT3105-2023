@@ -41,7 +41,7 @@ class RLAgent:
                 action, action_probabilities = self.policy.select_action(state)
 
                 # Add to replay buffer
-                self.env.rbuf.append((state, action_probabilities))
+                self.env.rbuf_add(state.get_state().copy(), action_probabilities)
 
                 # Perform action
                 print(
