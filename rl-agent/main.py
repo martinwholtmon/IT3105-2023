@@ -1,24 +1,52 @@
+import argparse
 from state_manager import Env
 from games.nim import Nim
 from agent import RLAgent
 from policy import Policy
+from neural_net import ANET
+
+# Define arguments
+parser = argparse.ArgumentParser(description="description")
+parser.add_argument("--render", action="store_true", help="render the environment")
+parser.add_argument(
+    "--log-interval",
+    type=int,
+    default=10,
+    metavar="N",
+    help="interval between training status logs (default: 10)",
+)
+args = parser.parse_args()
+# To use in code: if args.render:
 
 
 def main():
-    # RL Params
-    exploration_factor = 0.1
-
     # Load the game
     game = Nim(20, 4)
 
     # Define the environment
     env = Env(game)
 
-    # Define the RL Policy
-    policy = Policy()
+    # Define the neural network
+    game_shape = env.state.get_state().shape
+    action_shape = env.state.get_legal_actions().shape
+    neural_network = ANET(
+        input_shape=game_shape,
+        hidden_layers=[10, 10],
+        output_shape=action_shape,
+        activation_function="relu",
+    )
+
+    # Define the RL Policy using MCTS
+    policy = Policy(
+        neural_net=neural_network,
+        M=500,
+        # learning_rate=1,
+        # discount_factor=1,
+        exploration_factor=1,
+    )
 
     # Define the agent
-    agent = RLAgent(env=env, policy=policy, episodes=10, epsilon=exploration_factor)
+    agent = RLAgent(env=env, policy=policy, episodes=10, epsilon=1)
 
 
 if __name__ == "__main__":
