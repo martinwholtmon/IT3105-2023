@@ -47,7 +47,7 @@ class Node:
         """
         # UCT formula
         scores = [
-            (child.value / child.num_visits)
+            (child.value / child.num_visits if child.num_visits else 0)
             + exploration_factor
             * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
             for child in self.children
@@ -61,7 +61,8 @@ class Node:
             Node: Child node for the next game state
         """
         action = self.untried_actions.pop()
-        next_state = copy.deepcopy(self.state).perform_action(action)
+        next_state = copy.deepcopy(self.state)
+        next_state.perform_action(action)
         child_node = Node(state=next_state, parent=self, action=action)
         self.children.append(child_node)
         return child_node
