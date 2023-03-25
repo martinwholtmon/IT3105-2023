@@ -13,35 +13,26 @@ class State(ABC):
     """
 
     @abstractmethod
-    def get_state(self) -> np.ndarray:
-        """Return the current game state"""
+    def __init__(self) -> None:
+        self.current_player = 1
+        self.n_players = 2
+        self.current_state: np.ndarray = None
+        self.actions: "list[any]" = None
 
     @abstractmethod
     def perform_action(self, action):
         """Perform an action in the state"""
 
     @abstractmethod
-    def sample(self, player) -> any:
-        """Return a random legal action for the player
-
-        Args:
-            player (int): The current player
-        """
+    def sample(self) -> any:
+        """Return a random legal action"""
 
     @abstractmethod
-    def get_legal_actions(self, player) -> np.ndarray:
+    def get_legal_actions(self) -> list[any]:
         """Generate a list of legal actions for the current player
 
         Returns:
             list[any]: List of legal actions
-        """
-
-    @abstractmethod
-    def get_all_actions(self) -> np.ndarray:
-        """Return the list of all actions
-
-        Returns:
-            np.ndarray: List of actions
         """
 
     @abstractmethod
@@ -53,16 +44,36 @@ class State(ABC):
         """
 
     @abstractmethod
-    def get_reward(self, player) -> float:
+    def reset(self, seed):
+        """Resets the game"""
+
+    def get_state(self) -> np.ndarray:
+        """Return the current game state"""
+        return self.current_state
+
+    def get_all_actions(self) -> list[any]:
+        """Return the list of all actions
+
+        Returns:
+            list[any]: List of actions
+        """
+        return self.actions
+
+    def get_reward(self) -> float:
         """Get the reward
 
         Returns:
             float: the reward
         """
+        if self.is_terminated():
+            if self.current_player == 1:
+                return 1
+            return -1
+        return 0
 
-    @abstractmethod
-    def reset(self, seed):
-        """Resets the game"""
+    def next_player(self):
+        """Change the current_player in the state to the next player"""
+        self.current_player = (self.current_player % self.n_players) + 1
 
 
 class Env:
@@ -70,8 +81,7 @@ class Env:
 
     def __init__(self, state: State) -> None:
         self.state: State = state
-        self.current_player = 1
-        self.n_players = 2
+        self.rbuf = []
 
     def step(self, action) -> tuple[State, float, bool]:
         """Perform a step in the game
@@ -83,11 +93,8 @@ class Env:
             tuple[State, float, bool]: new_state, reward, is_terminated
         """
         self.state.perform_action(action)
-        reward = self.state.get_reward(self.current_player)
-
-        # Update player and return
-        self.current_player = (self.current_player % self.n_players) + 1
-        return self.state.get_state(), reward, self.state.is_terminated()
+        reward = self.state.get_reward()
+        return self.state, reward, self.state.is_terminated()
 
     def reset(self, seed: int = None) -> State:
         """Reset the game to an initial game state. If nessesary, introduces randomness.
@@ -98,6 +105,6 @@ class Env:
         Returns:
             State: The new state
         """
-        self.current_player = 1
         self.state.reset(seed)
+        self.rbuf = []
         return self.state

@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from helpers import is_sequence_of_type
+from helpers import is_sequence_of_type, is_int
 from state_manager import State
 
 
@@ -13,7 +13,7 @@ class ANET(nn.Module):
         self,
         input_shape: tuple[int, int],
         hidden_layers: list[int],
-        output_shape: tuple[int, int],
+        output_lenght: int,
         activation_function: str,
     ) -> None:
         """Init the neural network.
@@ -21,7 +21,7 @@ class ANET(nn.Module):
         Args:
             input_shape (tuple[int, int]): Shape of input params/features
             hidden_layers (list[int]): Number of units (neurons) per layer
-            output_shape (tuple[int, int]): Shape of max output params (largest action space)
+            output_lenght (int): Max output params (largest action space)
             activation_function (str): Activation function to use: linear, sigmoid, tanh, relu
         """
         # Inherit from nn.Module
@@ -30,7 +30,7 @@ class ANET(nn.Module):
         # Check params
         is_sequence_of_type("input_shape", input_shape, tuple, int, min=1, max=2)
         is_sequence_of_type("hidden_units", hidden_layers, list, int, min=1)
-        is_sequence_of_type("output_shape", output_shape, tuple, int, min=1, max=2)
+        is_int("output_lenght", output_lenght, min=1)
 
         # Set params
         self.activation_function = set_activation_class(activation_function)
@@ -53,7 +53,7 @@ class ANET(nn.Module):
                     modules.append(self.activation_function)
 
         # output layer
-        modules.append(nn.Linear(hidden_layers[-1], np.multiply.reduce(output_shape)))
+        modules.append(nn.Linear(hidden_layers[-1], output_lenght))
         modules.append(nn.Softmax())
 
         # Define the model
@@ -142,7 +142,7 @@ def scale_prediction(
     x = np.multiply(x, illegal_actions)
 
     # Normalize
-    x = x / np.linalg.norm(x)
+    x = x / np.sum(x)
     return x
 
 
@@ -162,7 +162,7 @@ def set_activation_class(activation_function: str) -> callable:
             return nn.Sigmoid()
         case "tanh":
             return nn.Tanh()
-        case "RELU":
+        case "relu":
             return nn.ReLU()
         case _:
             raise ValueError(

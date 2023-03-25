@@ -28,11 +28,11 @@ def main():
 
     # Define the neural network
     game_shape = env.state.get_state().shape
-    action_shape = env.state.get_legal_actions().shape
+    action_shape = len(env.state.get_all_actions())
     neural_network = ANET(
         input_shape=game_shape,
         hidden_layers=[10, 10],
-        output_shape=action_shape,
+        output_lenght=action_shape,
         activation_function="relu",
     )
 
@@ -45,8 +45,9 @@ def main():
         exploration_factor=1,
     )
 
-    # Define the agent
+    # # Define the agent
     agent = RLAgent(env=env, policy=policy, episodes=10, epsilon=1)
+    agent.train()
 
 
 if __name__ == "__main__":

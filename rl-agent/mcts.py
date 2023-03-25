@@ -46,13 +46,22 @@ class Node:
             Node: The child node
         """
         # UCT formula
-        scores = [
-            (child.value / child.num_visits)
-            + exploration_factor
-            * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
-            for child in self.children
-        ]
-        return self.children[np.argmax(scores)]
+        if self.state.current_player == 1:  # player 1 -> Maximize
+            scores = [
+                (child.value / child.num_visits if child.num_visits else 0)
+                + exploration_factor
+                * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
+                for child in self.children
+            ]
+            return self.children[np.argmax(scores)]
+        else:  # player 2 -> Minimize
+            scores = [
+                (child.value / child.num_visits if child.num_visits else 0)
+                - exploration_factor
+                * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
+                for child in self.children
+            ]
+            return self.children[np.argmin(scores)]
 
     def expand(self) -> Node:
         """Expand child states
@@ -61,7 +70,8 @@ class Node:
             Node: Child node for the next game state
         """
         action = self.untried_actions.pop()
-        next_state = copy.deepcopy(self.state).perform_action(action)
+        next_state = copy.deepcopy(self.state)
+        next_state.perform_action(action)
         child_node = Node(state=next_state, parent=self, action=action)
         self.children.append(child_node)
         return child_node
@@ -78,7 +88,7 @@ class Node:
 
 def mcts(
     state: State, policy: ANET, simulations: int, exploration_factor: float
-) -> any:
+) -> tuple[any, np.ndarray]:
     """Run the MCTS algorithm with M simulations to select the best action to perform
 
     Args:
@@ -88,7 +98,10 @@ def mcts(
         exploration_factor (float):
 
     Returns:
-        any: Action to perform
+        tuple[any, np.ndarray]:
+            any: Action to perform
+            np.ndarray: Action probabilities -> visit count normalized
+
     """
     # Take a deepcopy of the current state.
     # If it use a lot of memory, create own copy function for each game (implements State)
@@ -111,9 +124,10 @@ def mcts(
         # Backpropagate results through tree
         backpropagation(node, reward)
 
-    # Choose the best action
-    visits = [child.num_visits for child in root.children]
-    return node.children[np.argmax(visits)].action
+    # Choose the best action -> action with most visits
+    action_visits = [child.num_visits for child in root.children]
+    action_visits = action_visits / np.sum(action_visits)  # Normalized
+    return node.children[np.argmax(action_visits)].action, action_visits
 
 
 def tree_search(node: Node, state: State, exploration_factor: float):
@@ -150,7 +164,7 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
     node's state to a final state.
 
     Args:
-        state (State): Current game state
+        state (State): final game state
         policy (ANET): The neural network used to get the actions probability distributions
 
     Returns:
@@ -175,4 +189,4 @@ def backpropagation(node: Node, reward: float):
     while node is not None:
         node.update(reward)
         node = node.parent
-        reward = -reward
+        reward -= reward  # negate the reward because it's a min-max kind of situation

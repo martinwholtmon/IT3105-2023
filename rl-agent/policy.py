@@ -2,6 +2,7 @@
 
 Note: Subject to refactor as the policy is really the weights of the deep learning module
 """
+import numpy as np
 from mcts import mcts
 
 
@@ -48,13 +49,15 @@ class Policy:
         """
         raise NotImplementedError
 
-    def select_action(self, state) -> any:
+    def select_action(self, state) -> tuple[any, np.ndarray]:
         """Select the best action by performing MCTS
 
         Args:
             state (State): The state space
 
         Returns:
-            any: action to perform
+            tuple[any, np.ndarray]:
+                any: Action to perform
+                np.ndarray: Action probabilities -> visit count normalized
         """
         return mcts(state, self.neural_net, self.M, self.exploration_factor)

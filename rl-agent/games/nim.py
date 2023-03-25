@@ -25,46 +25,32 @@ class Nim(State):
             N (int): Number of initial pieces
             K (int): Maximum number of pieces that a player is allowed to remove at once
         """
+        super().__init__()
         self.initial_pieces = N
         self.max_remove_pieces = K
-        self.current_state = self.initial_pieces
+        self.current_state = np.array([self.initial_pieces])
         self.actions = [
             i for i in range(1, min(self.max_remove_pieces, self.initial_pieces) + 1)
         ]
 
-    def get_state(self) -> np.ndarray:
-        """Return the current game state"""
-        return self.current_state
-
     def perform_action(self, action):
         """Perform an action in the state"""
-        self.current_state -= action
+        self.current_state[0] -= action
+        self.next_player()
 
-    def sample(self, player) -> any:
-        """Return a random legal action for the player
+    def sample(self) -> any:
+        """Return a random legal action"""
+        return random.choice(self.get_legal_actions())
 
-        Args:
-            player (int): The current player
-        """
-        random.choice(self.get_legal_actions(player))
-
-    def get_legal_actions(self, player) -> np.ndarray:
-        """Generate a list of legal actions for the current player
+    def get_legal_actions(self) -> list[any]:
+        """Generate a list of legal actions
 
         Returns:
             list[any]: List of legal actions
         """
         return [
-            i for i in range(1, min(self.max_remove_pieces, self.current_state) + 1)
+            i for i in range(1, min(self.max_remove_pieces, self.current_state[0]) + 1)
         ]
-
-    def get_all_actions(self) -> np.ndarray:
-        """Return the list of all actions
-
-        Returns:
-            np.ndarray: List of actions
-        """
-        return self.actions
 
     def is_terminated(self) -> bool:
         """Check if the game is finished
@@ -72,18 +58,9 @@ class Nim(State):
         Returns:
             bool: Game is finished
         """
-        return self.current_state == 0
-
-    def get_reward(self, player) -> float:
-        """Get the reward
-
-        Returns:
-            float: the reward
-        """
-        if self.is_terminated():
-            return 1
-        return 0
+        return self.current_state[0] == 0
 
     def reset(self, seed):
         """Resets the game"""
-        self.current_state = self.initial_pieces
+        self.current_state[0] = self.initial_pieces
+        self.current_player = 1

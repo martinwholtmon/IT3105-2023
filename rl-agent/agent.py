@@ -6,16 +6,13 @@ from policy import Policy
 
 
 class RLAgent:
-    def __init__(
-        self, env: Env, policy: Policy, episodes: int, epsilon: float, player_id: int
-    ):
+    def __init__(self, env: Env, policy: Policy, episodes: int, epsilon: float):
         """Initialize the agent
         Args:
             env (Env): Gym environment
             policy (Policy): The RL policy
             episodes (int): Nr. of episodes/games to run
             epsilon (float): Exploration factor [0,1] Prevent overfitting
-            player_id (int): The id of the player
         """
         # Check parameters
         if episodes < 1:
@@ -30,7 +27,6 @@ class RLAgent:
         self.policy = policy
         self.episodes = episodes
         self.epsilon = epsilon
-        self.player_id = player_id
 
     def train(self):
         """Train the agent"""
@@ -42,17 +38,16 @@ class RLAgent:
 
             while not terminated:
                 # Select action
-                if random.uniform(0, 1) < self.epsilon:
-                    # Explore: Random legal action
-                    action = self.env.state.sample(self.player_id)
-                else:
-                    action = self.policy.select_action(state)
+                action, action_probabilities = self.policy.select_action(state)
+
+                # Add to replay buffer
+                self.env.rbuf.append((state, action_probabilities))
 
                 # Perform action
+                print(
+                    f"Epoch {episode_length}: State={state.get_state()}, selected action={action}"
+                )
                 next_state, reward, terminated = self.env.step(action)
-
-                # Update policy
-                self.policy.update(state, action, next_state, reward)
 
                 # Update score and state
                 cumulative_rewards += reward
@@ -60,6 +55,8 @@ class RLAgent:
                 state = next_state
 
                 # TODO: (opt) Adjusting epsilon: start high -> reduce
+
+            # Episode is done, update
 
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
