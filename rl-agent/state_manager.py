@@ -21,15 +21,11 @@ class State(ABC):
         """Perform an action in the state"""
 
     @abstractmethod
-    def sample(self, player) -> any:
-        """Return a random legal action for the player
-
-        Args:
-            player (int): The current player
-        """
+    def sample(self) -> any:
+        """Return a random legal action"""
 
     @abstractmethod
-    def get_legal_actions(self, player) -> np.ndarray:
+    def get_legal_actions(self) -> np.ndarray:
         """Generate a list of legal actions for the current player
 
         Returns:
@@ -87,7 +83,7 @@ class Env:
 
         # Update player and return
         self.current_player = (self.current_player % self.n_players) + 1
-        return self.state.get_state(), reward, self.state.is_terminated()
+        return self.state, reward, self.state.is_terminated()
 
     def reset(self, seed: int = None) -> State:
         """Reset the game to an initial game state. If nessesary, introduces randomness.

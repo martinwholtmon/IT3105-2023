@@ -27,10 +27,10 @@ class Nim(State):
         """
         self.initial_pieces = N
         self.max_remove_pieces = K
-        self.current_state = self.initial_pieces
-        self.actions = [
-            i for i in range(1, min(self.max_remove_pieces, self.initial_pieces) + 1)
-        ]
+        self.current_state = np.array([self.initial_pieces])
+        self.actions = np.array(
+            [i for i in range(1, min(self.max_remove_pieces, self.initial_pieces) + 1)]
+        )
 
     def get_state(self) -> np.ndarray:
         """Return the current game state"""
@@ -40,23 +40,19 @@ class Nim(State):
         """Perform an action in the state"""
         self.current_state -= action
 
-    def sample(self, player) -> any:
-        """Return a random legal action for the player
+    def sample(self) -> any:
+        """Return a random legal action"""
+        return random.choice(self.get_legal_actions())
 
-        Args:
-            player (int): The current player
-        """
-        random.choice(self.get_legal_actions(player))
-
-    def get_legal_actions(self, player) -> np.ndarray:
-        """Generate a list of legal actions for the current player
+    def get_legal_actions(self) -> np.ndarray:
+        """Generate a list of legal actions
 
         Returns:
             list[any]: List of legal actions
         """
-        return [
-            i for i in range(1, min(self.max_remove_pieces, self.current_state) + 1)
-        ]
+        return np.array(
+            [i for i in range(1, min(self.max_remove_pieces, self.current_state) + 1)]
+        )
 
     def get_all_actions(self) -> np.ndarray:
         """Return the list of all actions

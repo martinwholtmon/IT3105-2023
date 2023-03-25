@@ -162,7 +162,7 @@ def set_activation_class(activation_function: str) -> callable:
             return nn.Sigmoid()
         case "tanh":
             return nn.Tanh()
-        case "RELU":
+        case "relu":
             return nn.ReLU()
         case _:
             raise ValueError(
