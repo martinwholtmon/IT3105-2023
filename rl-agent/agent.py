@@ -38,8 +38,7 @@ class RLAgent:
 
             while not terminated:
                 # Select action
-                action = self.env.state.sample()
-                # action = self.policy.select_action(state)
+                action = self.policy.select_action(state)
 
                 print(
                     f"Epoch {episode_length}: State={state.get_state()}, selected action={action}"

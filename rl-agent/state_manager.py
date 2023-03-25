@@ -49,7 +49,7 @@ class State(ABC):
         """
 
     @abstractmethod
-    def get_reward(self, player) -> float:
+    def get_reward(self) -> float:
         """Get the reward
 
         Returns:
@@ -79,7 +79,7 @@ class Env:
             tuple[State, float, bool]: new_state, reward, is_terminated
         """
         self.state.perform_action(action)
-        reward = self.state.get_reward(self.current_player)
+        reward = self.state.get_reward()
 
         # Update player and return
         self.current_player = (self.current_player % self.n_players) + 1
