@@ -151,7 +151,7 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
     node's state to a final state.
 
     Args:
-        state (State): Current game state
+        state (State): final game state
         policy (ANET): The neural network used to get the actions probability distributions
 
     Returns:

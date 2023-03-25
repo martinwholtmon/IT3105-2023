@@ -28,7 +28,7 @@ def main():
 
     # Define the neural network
     game_shape = env.state.get_state().shape
-    action_shape = len(env.state.get_legal_actions())
+    action_shape = len(env.state.get_all_actions())
     neural_network = ANET(
         input_shape=game_shape,
         hidden_layers=[10, 10],
