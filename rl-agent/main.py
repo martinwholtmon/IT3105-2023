@@ -34,6 +34,7 @@ def main():
         hidden_layers=[10, 10],
         output_lenght=action_shape,
         activation_function="relu",
+        learning_rate=0.001,
     )
 
     # Define the RL Policy using MCTS

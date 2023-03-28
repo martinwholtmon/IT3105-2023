@@ -2,6 +2,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.optim as optim
 from helpers import is_sequence_of_type, is_int
 from state_manager import State
 
@@ -15,6 +16,7 @@ class ANET(nn.Module):
         hidden_layers: list[int],
         output_lenght: int,
         activation_function: str,
+        learning_rate: float,
     ) -> None:
         """Init the neural network.
 
@@ -23,6 +25,7 @@ class ANET(nn.Module):
             hidden_layers (list[int]): Number of units (neurons) per layer
             output_lenght (int): Max output params (largest action space)
             activation_function (str): Activation function to use: linear, sigmoid, tanh, relu
+            learning_rate (float): The rate of which the network will learn
         """
         # Inherit from nn.Module
         super(ANET, self).__init__()
@@ -61,6 +64,12 @@ class ANET(nn.Module):
 
         # Define the loss function
         self.loss_function = nn.CrossEntropyLoss()
+
+        # Define optimizer
+        self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+
+        # Init weights and biases
+        self.apply(init_weights_uniform)
 
     def predict(self, state: State) -> np.ndarray:
         """Given a state, return the action probabilities for all actions in the game
@@ -168,3 +177,17 @@ def set_activation_class(activation_function: str) -> callable:
             raise ValueError(
                 f"{activation_function} is not supported, please use a supported activation function: linear, sigmoid, tanh, or RELU"
             )
+
+
+def init_weights_uniform(model):
+    """Takes in a model and applies unifor rule to initialize weights and biases
+    Source: https://stackoverflow.com/a/55546528
+
+    Args:
+        model (nn.Module): pytorch model
+    """
+    if isinstance(model, nn.Linear):
+        n = model.in_features
+        y = 1.0 / np.sqrt(n)
+        model.weight.data.uniform_(-y, y)
+        model.bias.data.fill_(0)
