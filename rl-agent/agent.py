@@ -38,7 +38,9 @@ class RLAgent:
 
             while not terminated:
                 # Select action
-                action, action_probabilities = self.policy.select_action(state)
+                action, action_probabilities = self.policy.select_action(
+                    state, save_buffer=True
+                )
 
                 # Add to replay buffer
                 self.env.rbuf_add(state.get_state().copy(), action_probabilities)

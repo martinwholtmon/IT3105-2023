@@ -89,7 +89,6 @@ class Env:
 
     def __init__(self, state: State) -> None:
         self.state: State = state
-        self.rbuf = []
 
     def step(self, action) -> tuple[State, float, bool]:
         """Perform a step in the game
@@ -114,25 +113,4 @@ class Env:
             State: The new state
         """
         self.state.reset(seed)
-        self.rbuf.clear()
         return self.state
-
-    def rbuf_add(self, state: np.ndarray, action_probabilities: np.ndarray):
-        """Add a replay to the replay buffer
-
-        Args:
-            state (np.ndarray): a game state
-            action_probabilities (np.ndarray): action probabilities
-        """
-        self.rbuf.append((state, action_probabilities))
-
-    def rbuf_get(self, n: int) -> list[tuple[np.ndarray, np.ndarray]]:
-        """Get a certain amount of replays from the replay buffer, randomly picked.
-
-        Args:
-            n (int): Number of replays
-
-        Returns:
-            list[tuple[np.ndarray, np.ndarray]]: List of replay buffers: (state, action_probability)
-        """
-        raise NotImplementedError
