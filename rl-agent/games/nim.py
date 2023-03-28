@@ -64,3 +64,17 @@ class Nim(State):
         """Resets the game"""
         self.current_state[0] = self.initial_pieces
         self.current_player = 1
+
+    def clone(self):
+        """Clone/dereference the game state"""
+        new_state = Nim(self.initial_pieces, self.max_remove_pieces)
+        new_state.current_state = self.current_state.copy()  # Dereference
+        new_state.actions = self.actions  # Reference the list as its constant
+        new_state.current_player = self.current_player
+        return new_state
+
+    def next_state(self, action):
+        """Clones the current game state, and returns the next game state"""
+        next_state = self.clone()
+        next_state.perform_action(action)
+        return next_state

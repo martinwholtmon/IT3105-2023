@@ -47,6 +47,14 @@ class State(ABC):
     def reset(self, seed):
         """Resets the game"""
 
+    @abstractmethod
+    def clone(self):
+        """Clone/dereference the game state"""
+
+    @abstractmethod
+    def next_state(self, action):
+        """Clones the current game state, and returns the next game state"""
+
     def get_state(self) -> np.ndarray:
         """Return the current game state"""
         return self.current_state

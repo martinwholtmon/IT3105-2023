@@ -70,8 +70,7 @@ class Node:
             Node: Child node for the next game state
         """
         action = self.untried_actions.pop()
-        next_state = copy.deepcopy(self.state)
-        next_state.perform_action(action)
+        next_state = self.state.next_state(action)
         child_node = Node(state=next_state, parent=self, action=action)
         self.children.append(child_node)
         return child_node
@@ -110,7 +109,7 @@ def mcts(
     # Run MCTS
     for _ in range(simulations):
         node = root
-        current_state = copy.deepcopy(state)
+        current_state = state.clone()
 
         # Select action
         node, current_state = tree_search(node, current_state, exploration_factor)
