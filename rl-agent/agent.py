@@ -32,18 +32,14 @@ class RLAgent:
         """Train the agent"""
         for episode in range(1, self.episodes + 2):
             state = self.env.reset()
+            self.policy.rbuf_clear()
             terminated = False
             cumulative_rewards = 0
             episode_length = 0
 
             while not terminated:
                 # Select action
-                action, action_probabilities = self.policy.select_action(
-                    state, save_buffer=True
-                )
-
-                # Add to replay buffer
-                self.env.rbuf_add(state.get_state().copy(), action_probabilities)
+                action = self.policy.select_action(state, save_buffer=True)
 
                 # Perform action
                 print(
@@ -59,7 +55,7 @@ class RLAgent:
                 # TODO: (opt) Adjusting epsilon: start high -> reduce
 
             # Episode is done, update
-
+            # self.policy.update()
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
             )
