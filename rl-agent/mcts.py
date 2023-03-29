@@ -14,9 +14,7 @@ class Node:
         self.parent = parent  # Previous game state
         self.action = action
         self.children: "list[Node]" = []  # Child states by performing actions
-        self.untried_actions: list = (
-            state.get_legal_actions()
-        )  # avaiable actions in the current game state
+        self.untried_actions: list = state.legal_actions  # legal actions
         self.value = 0  # Predicts who will win (wins)
         self.num_visits = 0  # Might be used to keep exploration high
 
@@ -177,7 +175,7 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
     """
     while not state.is_terminated():
         action_probabilities = policy.predict(state)
-        action = np.random.choice(state.get_all_actions(), p=action_probabilities)
+        action = np.random.choice(state.actions, p=action_probabilities)
         state.perform_action(action)
     return state.get_reward()
 

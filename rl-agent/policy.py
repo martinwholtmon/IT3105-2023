@@ -66,10 +66,10 @@ class Policy:
             action_probabilities = mcts(
                 state, self.neural_net, self.M, self.exploration_factor
             )
-            self._rbuf_add(state.get_state().copy(), action_probabilities)
+            self._rbuf_add(state.current_state.copy(), action_probabilities)
         else:
             action_probabilities = self.neural_net.predict(state)
-        return state.get_all_actions()[np.argmax(action_probabilities)]
+        return state.actions[np.argmax(action_probabilities)]
 
     def _rbuf_add(self, state: np.ndarray, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer

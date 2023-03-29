@@ -14,10 +14,12 @@ class State(ABC):
 
     @abstractmethod
     def __init__(self) -> None:
+        self.current_state: np.ndarray = None
         self.current_player = 1
         self.n_players = 2
         self.current_state: np.ndarray = None
         self.actions: "list[any]" = None
+        self.legal_actions: "list[any]" = None
 
     @abstractmethod
     def perform_action(self, action):
@@ -28,12 +30,8 @@ class State(ABC):
         """Return a random legal action"""
 
     @abstractmethod
-    def get_legal_actions(self) -> list[any]:
-        """Generate a list of legal actions for the current player
-
-        Returns:
-            list[any]: List of legal actions
-        """
+    def update_legal_actions(self) -> list[any]:
+        """Updates the list of legal actions"""
 
     @abstractmethod
     def is_terminated(self) -> bool:
@@ -54,18 +52,6 @@ class State(ABC):
     @abstractmethod
     def next_state(self, action):
         """Clones the current game state, and returns the next game state"""
-
-    def get_state(self) -> np.ndarray:
-        """Return the current game state"""
-        return self.current_state
-
-    def get_all_actions(self) -> list[any]:
-        """Return the list of all actions
-
-        Returns:
-            list[any]: List of actions
-        """
-        return self.actions
 
     def get_reward(self) -> float:
         """Get the reward

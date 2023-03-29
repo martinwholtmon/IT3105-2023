@@ -29,26 +29,24 @@ class Nim(State):
         self.initial_pieces = N
         self.max_remove_pieces = K
         self.current_state = np.array([self.initial_pieces])
-        self.actions = [
-            i for i in range(1, min(self.max_remove_pieces, self.initial_pieces) + 1)
-        ]
+        self.actions = list(
+            range(1, min(self.max_remove_pieces, self.initial_pieces) + 1)
+        )
+        self.update_legal_actions()
 
     def perform_action(self, action):
         """Perform an action in the state"""
         self.current_state[0] -= action
         self.next_player()
+        self.update_legal_actions()
 
     def sample(self) -> any:
         """Return a random legal action"""
-        return random.choice(self.get_legal_actions())
+        return random.choice(self.legal_actions)
 
-    def get_legal_actions(self) -> list[any]:
-        """Generate a list of legal actions
-
-        Returns:
-            list[any]: List of legal actions
-        """
-        return [
+    def update_legal_actions(self) -> list[any]:
+        """Updates the list of legal actions"""
+        self.legal_actions = [
             i for i in range(1, min(self.max_remove_pieces, self.current_state[0]) + 1)
         ]
 
@@ -64,12 +62,14 @@ class Nim(State):
         """Resets the game"""
         self.current_state[0] = self.initial_pieces
         self.current_player = 1
+        self.update_legal_actions()
 
     def clone(self):
         """Clone/dereference the game state"""
         new_state = Nim(self.initial_pieces, self.max_remove_pieces)
         new_state.current_state = self.current_state.copy()  # Dereference
         new_state.actions = self.actions  # Reference the list as its constant
+        new_state.legal_actions = self.legal_actions.copy()
         new_state.current_player = self.current_player
         return new_state
 

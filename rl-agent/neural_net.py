@@ -81,9 +81,9 @@ class ANET(nn.Module):
             np.ndarray: action probabilities
         """
         return scale_prediction(
-            self.forward(state.get_state()),
-            state.get_legal_actions(),
-            state.get_all_actions(),
+            self.forward(state.current_state),
+            state.legal_actions,
+            state.actions,
         )
 
     def forward(self, x: np.ndarray):
