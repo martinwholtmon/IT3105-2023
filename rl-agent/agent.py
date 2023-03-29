@@ -39,7 +39,7 @@ class RLAgent:
 
             while not terminated:
                 # Select action
-                action = self.policy.select_action(state, save_buffer=True)
+                action = self.policy.select_action(state, training_mode=True)
 
                 # Perform action
                 print(

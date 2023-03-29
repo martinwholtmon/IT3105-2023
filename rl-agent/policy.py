@@ -4,6 +4,8 @@ Note: Subject to refactor as the policy is really the weights of the deep learni
 """
 import numpy as np
 from mcts import mcts
+from state_manager import State
+from neural_net import ANET
 
 
 class Policy:
@@ -32,7 +34,7 @@ class Policy:
         #     raise ValueError("Gamma (Reward importance) must be in the interval [0,1]")
 
         # Set params
-        self.neural_net = neural_net
+        self.neural_net: ANET = neural_net
         self.M = M
         # self.learning_rate = learning_rate  # TODO: Remove if unused
         # self.discount_factor = discount_factor  # TODO: Remove if unused
@@ -50,23 +52,24 @@ class Policy:
         """
         raise NotImplementedError
 
-    def select_action(self, state, save_buffer: bool = False) -> any:
-        """Select the best action by performing MCTS
+    def select_action(self, state: State, training_mode: bool = False) -> any:
+        """Select the best action given policy
 
         Args:
-            state (State): The state space
+            state (State): The current state
+            training_mode (bool, optional): Perform MCTS, save target and state to RBUF. Defaults to False.
 
         Returns:
-            tuple[any, np.ndarray]:
-                any: Action to perform
-                np.ndarray: Action probabilities -> visit count normalized
+            any: Action to perform
         """
-        action, action_probabilities = mcts(
-            state, self.neural_net, self.M, self.exploration_factor
-        )
-        if save_buffer:
-            self._rbuf_add(state, action_probabilities)
-        return action
+        if training_mode:
+            action_probabilities = mcts(
+                state, self.neural_net, self.M, self.exploration_factor
+            )
+            self._rbuf_add(state.get_state().copy(), action_probabilities)
+        else:
+            action_probabilities = self.neural_net.predict(state)
+        return state.get_all_actions()[np.argmax(action_probabilities)]
 
     def _rbuf_add(self, state: np.ndarray, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer

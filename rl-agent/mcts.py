@@ -97,9 +97,7 @@ def mcts(
         exploration_factor (float):
 
     Returns:
-        tuple[any, np.ndarray]:
-            any: Action to perform
-            np.ndarray: Action probabilities -> visit count normalized
+        np.ndarray: Action probabilities -> visit count normalized
 
     """
     # Take a deepcopy of the current state.
@@ -126,7 +124,7 @@ def mcts(
     # Choose the best action -> action with most visits
     action_visits = [child.num_visits for child in root.children]
     action_visits = action_visits / np.sum(action_visits)  # Normalized
-    return root.children[np.argmax(action_visits)].action, action_visits
+    return action_visits
 
 
 def tree_search(node: Node, state: State, exploration_factor: float):
