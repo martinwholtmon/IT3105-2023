@@ -128,7 +128,6 @@ def mcts(
 
     # Normalize
     action_probabilities = action_probabilities / np.sum(action_probabilities)
-    print(action_probabilities)
     return action_probabilities
 
 
