@@ -41,16 +41,10 @@ class Policy:
         self.exploration_factor = exploration_factor
         self.rbuf: "list[tuple[State, np.ndarray]]" = []
 
-    def update(self, state, action, next_state, reward):
-        """Update the target policy
-
-        Args:
-            state (State): The game state
-            action (any): action to be performed
-            next_state (State): The next game state after performing an action
-            reward (float): Reward after preforming the action
-        """
-        raise NotImplementedError
+    def update(self):
+        """Update the target policy"""
+        self.neural_net.train(self.rbuf)
+        self.rbuf_clear()
 
     def select_action(self, state: State, training_mode: bool = False) -> any:
         """Select the best action given policy

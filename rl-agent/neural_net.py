@@ -1,4 +1,7 @@
-"""Create the neural network and handles all the interactions with it."""
+"""This is the behavior policy: the actor network.
+
+This network is always in the perspective of player 1, 
+meaning that for player 2 we must minimize instead of maximize"""
 import numpy as np
 import torch
 import torch.nn as nn
@@ -80,28 +83,75 @@ class ANET(nn.Module):
         Returns:
             np.ndarray: action probabilities
         """
+        input = np_to_tensor(state.current_state, state.current_player)
+        pred = tensor_to_np(self.forward(input))
         return scale_prediction(
-            self.forward(state.current_state, state.current_player),
-            state.current_player,
+            pred,
             state.legal_actions,
             state.actions,
         )
 
-    def forward(self, x: np.ndarray, current_player: int):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Do a forward pass in the network and return predictions.
-        2d games will be converted to 1d array
 
         Args:
-            x (np.ndarray): game state
-            current_player (int): the current players turn
+            x (torch.Tensor): game state
 
         Returns:
-            np.ndarray: predicted values as a 1d np.ndarray
+            torch.Tensor: predicted values
         """
-        return tensor_to_np(self.layers(np_to_tensor(x, current_player)))
+        return self.layers(x)
 
-    def update(self, batch):
-        raise NotImplementedError
+    def train(self, batch: list[tuple[State, np.ndarray]]):
+        """Sample the replay buffer and do updates (gradient decent)
+
+        Args:
+            batch (list[tuple[np.ndarray, np.ndarray]]): List of replay buffers
+        """
+        # Get target values for samples
+        input: "list[np.ndarray]" = []
+        for entry in batch:
+            input.append(
+                transform_state(entry[0].current_state, entry[0].current_player)
+            )
+
+        # Extract input values and taget values from batch
+        target = [entry[1] for entry in batch]
+
+        # Convert to tensors
+        input = torch.FloatTensor(np.array(input))
+        target = torch.FloatTensor(np.array(target))
+
+        # Do forward pass
+        input = self.forward(input)
+
+        # Calc loss
+        loss = self.loss_function(input, target)
+        print(f"loss: {loss.item()}")
+
+        # Optimize
+        self.optimizer.zero_grad()
+        loss.backward()
+
+
+def transform_state(state: np.ndarray, player: int) -> np.ndarray:
+    """This method will transform the state space, and include the current player
+
+    Args:
+        state (np.ndarray): Current state space
+        player (int): playerid (PID)
+
+    Returns:
+        np.ndarray: the transformed state
+    """
+    state = state.flatten()
+
+    # Add player info
+    if player == 1:
+        player_arr = np.zeros((1))
+    else:
+        player_arr = np.ones((1))
+    return np.concatenate((state, player_arr))
 
 
 def np_to_tensor(state: np.ndarray, player: int) -> torch.Tensor:
@@ -115,17 +165,7 @@ def np_to_tensor(state: np.ndarray, player: int) -> torch.Tensor:
     Returns:
         torch.Tensor: game state as a tensor
     """
-    # convert initial state to tensor
-    tensor = torch.from_numpy(state).flatten()
-
-    # Add player info
-    if player == 1:
-        player_torch = torch.zeros((1))
-    else:
-        player_torch = torch.ones((1))
-
-    # return
-    return torch.cat((tensor, player_torch)).float()
+    return torch.from_numpy(transform_state(state, player)).float()
 
 
 def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
