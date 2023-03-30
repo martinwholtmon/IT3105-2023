@@ -82,6 +82,7 @@ class ANET(nn.Module):
         """
         return scale_prediction(
             self.forward(state.current_state),
+            state.current_player,
             state.legal_actions,
             state.actions,
         )
@@ -129,7 +130,10 @@ def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
 
 
 def scale_prediction(
-    x: np.ndarray, legal_actions: np.ndarray, all_actions: np.ndarray
+    x: np.ndarray,
+    current_player: int,
+    legal_actions: np.ndarray,
+    all_actions: np.ndarray,
 ) -> np.ndarray:
     """The output layer must have a fixed number of outputs
     even though there might not be so many avaiable actions.
@@ -141,11 +145,16 @@ def scale_prediction(
 
     Args:
         x (np.ndarray): Probability distribution for all possible actions
+        current_player (int): The current player
         legal_actions (np.ndarray): list of legal actions
+        all_actions (np.ndarray): All actions
 
     Returns:
         np.ndarray:  Probability distribution for the legal actions
     """
+    if current_player == 2:  # Reverse the probability distribution
+        x = 1 - x
+
     # Set predictions of illegal actions to 0
     illegal_actions = np.isin(all_actions, legal_actions).astype(int)  # mask of 0 and 1
     x = np.multiply(x, illegal_actions)
