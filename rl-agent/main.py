@@ -42,7 +42,7 @@ def main():
         neural_net=neural_network,
         M=500,
         # learning_rate=1,
-        # discount_factor=1,
+        # discount_factor=1,  # assumed to be 1
         exploration_factor=1,
     )
 

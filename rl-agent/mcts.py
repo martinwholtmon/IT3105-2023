@@ -122,7 +122,7 @@ def mcts(
     # Return action probabilities
     action_probabilities = np.zeros((len(state.actions),))
 
-    # input visit count for the actions
+    # input visit count for the legal actions
     for child in root.children:
         action_probabilities[state.actions.index(child.action)] = child.num_visits
 
