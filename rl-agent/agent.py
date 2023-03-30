@@ -1,6 +1,5 @@
 """The Reinforcement learning agent
 """
-import random
 from state_manager import Env
 from policy import Policy
 
@@ -55,7 +54,7 @@ class RLAgent:
                 # TODO: (opt) Adjusting epsilon: start high -> reduce
 
             # Episode is done, update
-            # self.policy.update()
+            self.policy.update()
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
             )
