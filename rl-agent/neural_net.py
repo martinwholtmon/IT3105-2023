@@ -41,8 +41,8 @@ class ANET(nn.Module):
         # Add layers
         modules = []
 
-        # input layer
-        modules.append(nn.Linear(np.multiply.reduce(input_shape), hidden_layers[0]))
+        # input layer + 1 to account for player info
+        modules.append(nn.Linear(np.multiply.reduce(input_shape) + 1, hidden_layers[0]))
 
         # hidden layers
         if len(hidden_layers) == 1:
@@ -81,29 +81,30 @@ class ANET(nn.Module):
             np.ndarray: action probabilities
         """
         return scale_prediction(
-            self.forward(state.current_state),
+            self.forward(state.current_state, state.current_player),
             state.current_player,
             state.legal_actions,
             state.actions,
         )
 
-    def forward(self, x: np.ndarray):
+    def forward(self, x: np.ndarray, current_player: int):
         """Do a forward pass in the network and return predictions.
         2d games will be converted to 1d array
 
         Args:
             x (np.ndarray): game state
+            current_player (int): the current players turn
 
         Returns:
             np.ndarray: predicted values as a 1d np.ndarray
         """
-        return tensor_to_np(self.layers(np_to_tensor(x)))
+        return tensor_to_np(self.layers(np_to_tensor(x, current_player)))
 
     def update(self, batch):
         raise NotImplementedError
 
 
-def np_to_tensor(x: State) -> torch.Tensor:
+def np_to_tensor(state: np.ndarray, player: int) -> torch.Tensor:
     """Converts a state to a tensor.
     Flatten the tensor - in case of ndarray of 2+d
     Convert it to floats: PyTorch parameters expect float32 input
@@ -114,7 +115,17 @@ def np_to_tensor(x: State) -> torch.Tensor:
     Returns:
         torch.Tensor: game state as a tensor
     """
-    return torch.from_numpy(x).flatten().float()
+    # convert initial state to tensor
+    tensor = torch.from_numpy(state).flatten()
+
+    # Add player info
+    if player == 1:
+        player_torch = torch.zeros((1))
+    else:
+        player_torch = torch.ones((1))
+
+    # return
+    return torch.cat((tensor, player_torch)).float()
 
 
 def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
@@ -131,7 +142,6 @@ def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
 
 def scale_prediction(
     x: np.ndarray,
-    current_player: int,
     legal_actions: np.ndarray,
     all_actions: np.ndarray,
 ) -> np.ndarray:
@@ -145,16 +155,12 @@ def scale_prediction(
 
     Args:
         x (np.ndarray): Probability distribution for all possible actions
-        current_player (int): The current player
         legal_actions (np.ndarray): list of legal actions
         all_actions (np.ndarray): All actions
 
     Returns:
         np.ndarray:  Probability distribution for the legal actions
     """
-    if current_player == 2:  # Reverse the probability distribution
-        x = 1 - x
-
     # Set predictions of illegal actions to 0
     illegal_actions = np.isin(all_actions, legal_actions).astype(int)  # mask of 0 and 1
     x = np.multiply(x, illegal_actions)
