@@ -119,10 +119,17 @@ def mcts(
         # Backpropagate results through tree
         backpropagation(node, reward)
 
-    # Choose the best action -> action with most visits
-    action_visits = [child.num_visits for child in root.children]
-    action_visits = action_visits / np.sum(action_visits)  # Normalized
-    return action_visits
+    # Return action probabilities
+    action_probabilities = np.zeros((len(state.actions),))
+
+    # input visit count for the actions
+    for child in root.children:
+        action_probabilities[state.actions.index(child.action)] = child.num_visits
+
+    # Normalize
+    action_probabilities = action_probabilities / np.sum(action_probabilities)
+    print(action_probabilities)
+    return action_probabilities
 
 
 def tree_search(node: Node, state: State, exploration_factor: float):
