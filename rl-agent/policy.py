@@ -39,7 +39,7 @@ class Policy:
         # self.learning_rate = learning_rate  # TODO: Remove if unused
         # self.discount_factor = discount_factor  # TODO: Remove if unused
         self.exploration_factor = exploration_factor
-        self.rbuf = []
+        self.rbuf: "list[tuple[State, np.ndarray]]" = []
 
     def update(self, state, action, next_state, reward):
         """Update the target policy
@@ -66,27 +66,18 @@ class Policy:
             action_probabilities = mcts(
                 state, self.neural_net, self.M, self.exploration_factor
             )
-            self._rbuf_add(state.current_state.copy(), action_probabilities)
+            self._rbuf_add(state, action_probabilities)
         else:
             action_probabilities = self.neural_net.predict(state)
         return state.actions[np.argmax(action_probabilities)]
 
-    def _rbuf_add(self, state: np.ndarray, action_probabilities: np.ndarray):
+    def _rbuf_add(self, state: State, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer
         Args:
-            state (np.ndarray): a game state
+            state (State): a game state
             action_probabilities (np.ndarray): action probabilities
         """
-        self.rbuf.append((state, action_probabilities))
-
-    def _rbuf_get(self, n: int) -> list[tuple[np.ndarray, np.ndarray]]:
-        """Get a certain amount of replays from the replay buffer, randomly picked.
-        Args:
-            n (int): Number of replays
-        Returns:
-            list[tuple[np.ndarray, np.ndarray]]: List of replay buffers: (state, action_probability)
-        """
-        raise NotImplementedError
+        self.rbuf.append((state.clone(), action_probabilities))
 
     def rbuf_clear(self):
         """Clear the replay buffer"""
