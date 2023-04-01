@@ -18,17 +18,12 @@ class ANET(nn.Module):
         input_shape: tuple[int, int],
         hidden_layers: list[int],
         output_lenght: int,
-        activation_function: str,
-        learning_rate: float,
+        device: Union[torch.device, str] = "auto",
     ) -> None:
         """Init the neural network.
 
         Args:
-            input_shape (tuple[int, int]): Shape of input params/features
-            hidden_layers (list[int]): Number of units (neurons) per layer
-            output_lenght (int): Max output params (largest action space)
-            activation_function (str): Activation function to use: linear, sigmoid, tanh, relu
-            learning_rate (float): The rate of which the network will learn
+            device (Union[torch.device, str], optional): Device the network should use. Defaults to "auto" meaning that it will use GPU if available.
         """
         # Inherit from nn.Module
         super(ANET, self).__init__()
@@ -40,6 +35,7 @@ class ANET(nn.Module):
 
         # Set params
         self.activation_function = set_activation_class(activation_function)
+        self.device = get_device(device)
 
         # Add layers
         modules = []
@@ -249,3 +245,23 @@ def init_weights_uniform(model):
         y = 1.0 / np.sqrt(n)
         model.weight.data.uniform_(-y, y)
         model.bias.data.fill_(0)
+
+
+def get_device(device: Union[torch.device, str]) -> torch.device:
+    """Get the pytorch device
+
+    Args:
+        device (Union[torch.device, str]): A pytorch device, or "auto", "cuda", "cpu"
+
+    Returns:
+        torch.device: Device to use
+    """
+
+    # Auto, set cuda
+    if device == "auto":
+        device = "cuda"
+
+    # Set device
+    if not torch.cuda.is_available() or device == "cpu":
+        return torch.device("cpu")
+    return torch.device(device)
