@@ -92,7 +92,7 @@ def mcts(
         state (State): The state space
         policy (ANET): The policy used to select actions
         simulations (int): Number of simulations
-        exploration_factor (float):
+        exploration_factor (float): How explorative the MCTS is
 
     Returns:
         np.ndarray: Action probabilities -> visit count normalized

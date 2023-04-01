@@ -2,11 +2,11 @@
 
 This network is always in the perspective of player 1, 
 meaning that for player 2 we must minimize instead of maximize"""
+from typing import Union
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from helpers import is_sequence_of_type, is_int
 from state_manager import State
 
 
@@ -15,26 +15,40 @@ class ANET(nn.Module):
 
     def __init__(
         self,
-        input_shape: tuple[int, int],
-        hidden_layers: list[int],
+        input_shape: "list[int]",
         output_lenght: int,
+        hidden_layers: list[int] = [128, 128, 128],
+        activation_function: str = "relu",
+        learning_rate: float = 0.001,
+        batch_size: int = 32,
+        discount_factor: int = 1,  # assumed to be 1
+        gradient_steps: int = 1,
+        max_grad_norm: float = 10,
         device: Union[torch.device, str] = "auto",
     ) -> None:
         """Init the neural network.
 
         Args:
+            input_shape (list[int]): Shape of input params/features
+            output_lenght (int):  Max output params (largest action space)
+            hidden_layers (list[int], optional): Number of units (neurons) per layer. Defaults to [128, 128, 128].
+            activation_function (str, optional): Activation function to use: linear, sigmoid, tanh, relu. Defaults to "relu".
+            learning_rate (float, optional): The rate of which the network will learn (0,1]. Defaults to 0.001.
+            batch_size (int, optional): Minibatch size for each gradient update. Defaults to 32.
+            discount_factor (int, optional): Reward importance [0,1]. Defaults to 1.
+            max_grad_norm (float, optional): Max value for gradient clipping. Defaults to 10.
             device (Union[torch.device, str], optional): Device the network should use. Defaults to "auto" meaning that it will use GPU if available.
         """
         # Inherit from nn.Module
         super(ANET, self).__init__()
 
-        # Check params
-        is_sequence_of_type("input_shape", input_shape, tuple, int, min=1, max=2)
-        is_sequence_of_type("hidden_units", hidden_layers, list, int, min=1)
-        is_int("output_lenght", output_lenght, min=1)
-
         # Set params
         self.activation_function = set_activation_class(activation_function)
+        self.learning_rate = learning_rate
+        self.batch_size = batch_size
+        self.discount_factor = discount_factor
+        self.gradient_steps = gradient_steps
+        self.max_grad_norm = max_grad_norm
         self.device = get_device(device)
 
         # Add layers
