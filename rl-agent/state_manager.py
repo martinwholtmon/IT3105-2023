@@ -67,7 +67,8 @@ class State(ABC):
 
     def next_player(self):
         """Change the current_player in the state to the next player"""
-        self.current_player = (self.current_player % self.n_players) + 1
+        if not self.is_terminated():
+            self.current_player = (self.current_player % self.n_players) + 1
 
 
 class Env:
