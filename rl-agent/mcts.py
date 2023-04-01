@@ -181,10 +181,7 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
     """
     while not state.is_terminated():
         action_probabilities = policy.predict(state)
-        action = np.random.choice(
-            state.actions, p=action_probabilities
-        )  # roulette wheel
-        state.perform_action(action)
+        state.perform_action(state.actions[np.argmax(action_probabilities)])
     return state.get_reward()
 
 
