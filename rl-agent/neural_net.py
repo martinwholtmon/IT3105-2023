@@ -116,7 +116,9 @@ class ANET(nn.Module):
             )
 
         # Extract input values and taget values from batch
-        target = [entry[1] for entry in batch]
+        target = [
+            entry[1] for entry in batch
+        ]  # TODO: Probably do some q value stuff here?
 
         # Convert to tensors
         input = torch.FloatTensor(np.array(input))
@@ -132,6 +134,7 @@ class ANET(nn.Module):
         # Optimize
         self.optimizer.zero_grad()
         loss.backward()
+        self.optimizer.step()
 
 
 def transform_state(state: np.ndarray, player: int) -> np.ndarray:
