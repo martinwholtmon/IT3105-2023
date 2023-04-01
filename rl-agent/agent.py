@@ -1,6 +1,5 @@
 """The Reinforcement learning agent
 """
-import random
 from state_manager import Env
 from policy import Policy
 
@@ -30,23 +29,21 @@ class RLAgent:
 
     def train(self):
         """Train the agent"""
-        for episode in range(1, self.episodes + 2):
+        for episode in range(1, self.episodes + 1):
             state = self.env.reset()
+            self.policy.rbuf_clear()
             terminated = False
             cumulative_rewards = 0
             episode_length = 0
 
             while not terminated:
                 # Select action
-                action, action_probabilities = self.policy.select_action(state)
-
-                # Add to replay buffer
-                self.env.rbuf.append((state, action_probabilities))
+                action = self.policy.select_action(state, training_mode=True)
 
                 # Perform action
-                print(
-                    f"Epoch {episode_length}: State={state.get_state()}, selected action={action}"
-                )
+                # print(
+                #     f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={action}"
+                # )
                 next_state, reward, terminated = self.env.step(action)
 
                 # Update score and state
@@ -57,7 +54,7 @@ class RLAgent:
                 # TODO: (opt) Adjusting epsilon: start high -> reduce
 
             # Episode is done, update
-
+            self.policy.update()
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
             )

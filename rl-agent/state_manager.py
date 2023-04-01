@@ -14,10 +14,12 @@ class State(ABC):
 
     @abstractmethod
     def __init__(self) -> None:
+        self.current_state: np.ndarray = None
         self.current_player = 1
         self.n_players = 2
         self.current_state: np.ndarray = None
         self.actions: "list[any]" = None
+        self.legal_actions: "list[any]" = None
 
     @abstractmethod
     def perform_action(self, action):
@@ -28,12 +30,8 @@ class State(ABC):
         """Return a random legal action"""
 
     @abstractmethod
-    def get_legal_actions(self) -> list[any]:
-        """Generate a list of legal actions for the current player
-
-        Returns:
-            list[any]: List of legal actions
-        """
+    def update_legal_actions(self) -> list[any]:
+        """Updates the list of legal actions"""
 
     @abstractmethod
     def is_terminated(self) -> bool:
@@ -47,17 +45,13 @@ class State(ABC):
     def reset(self, seed):
         """Resets the game"""
 
-    def get_state(self) -> np.ndarray:
-        """Return the current game state"""
-        return self.current_state
+    @abstractmethod
+    def clone(self):
+        """Clone/dereference the game state"""
 
-    def get_all_actions(self) -> list[any]:
-        """Return the list of all actions
-
-        Returns:
-            list[any]: List of actions
-        """
-        return self.actions
+    @abstractmethod
+    def next_state(self, action):
+        """Clones the current game state, and returns the next game state"""
 
     def get_reward(self) -> float:
         """Get the reward
@@ -73,7 +67,8 @@ class State(ABC):
 
     def next_player(self):
         """Change the current_player in the state to the next player"""
-        self.current_player = (self.current_player % self.n_players) + 1
+        if not self.is_terminated():
+            self.current_player = (self.current_player % self.n_players) + 1
 
 
 class Env:
@@ -81,7 +76,6 @@ class Env:
 
     def __init__(self, state: State) -> None:
         self.state: State = state
-        self.rbuf = []
 
     def step(self, action) -> tuple[State, float, bool]:
         """Perform a step in the game
@@ -106,5 +100,4 @@ class Env:
             State: The new state
         """
         self.state.reset(seed)
-        self.rbuf = []
         return self.state
