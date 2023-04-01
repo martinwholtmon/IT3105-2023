@@ -29,7 +29,7 @@ class RLAgent:
 
     def train(self):
         """Train the agent"""
-        for episode in range(1, self.episodes + 2):
+        for episode in range(1, self.episodes + 1):
             state = self.env.reset()
             self.policy.rbuf_clear()
             terminated = False
@@ -41,9 +41,9 @@ class RLAgent:
                 action = self.policy.select_action(state, training_mode=True)
 
                 # Perform action
-                print(
-                    f"Epoch {episode_length}: State={state.current_state}, selected action={action}"
-                )
+                # print(
+                #     f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={action}"
+                # )
                 next_state, reward, terminated = self.env.step(action)
 
                 # Update score and state
