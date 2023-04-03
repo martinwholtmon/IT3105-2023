@@ -21,7 +21,7 @@ args = parser.parse_args()
 
 def main():
     # Load the game
-    game = Nim(12, 4)
+    game = Nim(12, 4, 3)
 
     # Define the environment
     env = Env(game)
@@ -32,9 +32,9 @@ def main():
     neural_network = ANET(
         input_shape=game_shape,
         output_lenght=action_shape,
-        hidden_layers=[64, 64, 64],
+        hidden_layers=[128, 128, 128, 128],
         activation_function="relu",
-        learning_rate=0.001,
+        learning_rate=0.01,
         batch_size=32,
         discount_factor=1,  # assumed to be 1
         gradient_steps=1,
@@ -44,13 +44,13 @@ def main():
     # Define the RL Policy using MCTS
     policy = Policy(
         neural_net=neural_network,
-        M=400,
+        M=100,
         exploration_factor=1,
         exploration_fraction=1,
     )
 
     # # Define the agent
-    agent = RLAgent(env=env, policy=policy, episodes=200, epsilon=1)
+    agent = RLAgent(env=env, policy=policy, episodes=300, epsilon=1)
     agent.train()
     # agent.evaluate()
 
