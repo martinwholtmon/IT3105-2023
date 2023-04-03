@@ -215,11 +215,16 @@ def scale_prediction(
         np.ndarray:  Probability distribution for the legal actions
     """
     # Set predictions of illegal actions to 0
-    illegal_actions = np.isin(all_actions, legal_actions).astype(int)  # mask of 0 and 1
-    x = np.multiply(x, illegal_actions)
+    mask_legal_actions = isin(all_actions, legal_actions)  # mask of 0 and 1
+    x = np.multiply(x, mask_legal_actions)
 
     # Normalize
-    x = x / np.sum(x)
+    x_sum = np.sum(x)
+    if x_sum != 0:
+        # in the few cases where the model gives zero chance of winning to legal actions, return the mask
+        x = x / x_sum
+    else:
+        x = mask_legal_actions
     return x
 
 
@@ -279,3 +284,21 @@ def get_device(device: Union[torch.device, str]) -> torch.device:
     if not torch.cuda.is_available() or device == "cpu":
         return torch.device("cpu")
     return torch.device(device)
+
+
+def isin(all_actions, legal_actions) -> np.ndarray:
+    mask = []
+
+    legal_index = 0
+    max_index = len(legal_actions) - 1
+
+    for action in all_actions:
+        if legal_index <= max_index:
+            if action == legal_actions[legal_index]:
+                mask.append(1)
+                legal_index += 1
+            else:
+                mask.append(0)
+        else:
+            mask.append(0)
+    return np.array(mask)
