@@ -18,8 +18,8 @@ class State(ABC):
         self.current_player = 1
         self.n_players = 2
         self.current_state: np.ndarray = None
-        self.actions: "list[any]" = None
-        self.legal_actions: "list[any]" = None
+        self.actions: "list[any]" = []
+        self.legal_actions: "list[any]" = []
 
     @abstractmethod
     def perform_action(self, action):
@@ -28,10 +28,6 @@ class State(ABC):
     @abstractmethod
     def sample(self) -> any:
         """Return a random legal action"""
-
-    @abstractmethod
-    def update_legal_actions(self) -> list[any]:
-        """Updates the list of legal actions"""
 
     @abstractmethod
     def is_terminated(self) -> bool:
@@ -65,7 +61,7 @@ class State(ABC):
             return -1
         return 0
 
-    def next_player(self):
+    def _next_player(self):
         """Change the current_player in the state to the next player"""
         if not self.is_terminated():
             self.current_player = (self.current_player % self.n_players) + 1

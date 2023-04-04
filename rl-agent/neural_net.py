@@ -2,11 +2,11 @@
 
 This network is always in the perspective of player 1, 
 meaning that for player 2 we must minimize instead of maximize"""
+from typing import Union
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from helpers import is_sequence_of_type, is_int
 from state_manager import State
 
 
@@ -15,31 +15,41 @@ class ANET(nn.Module):
 
     def __init__(
         self,
-        input_shape: tuple[int, int],
-        hidden_layers: list[int],
+        input_shape: "list[int]",
         output_lenght: int,
-        activation_function: str,
-        learning_rate: float,
+        hidden_layers: list[int] = [128, 128, 128],
+        activation_function: str = "relu",
+        learning_rate: float = 0.001,
+        batch_size: int = 32,
+        discount_factor: int = 1,  # assumed to be 1
+        gradient_steps: int = 1,
+        max_grad_norm: float = 10,
+        device: Union[torch.device, str] = "auto",
     ) -> None:
         """Init the neural network.
 
         Args:
-            input_shape (tuple[int, int]): Shape of input params/features
-            hidden_layers (list[int]): Number of units (neurons) per layer
-            output_lenght (int): Max output params (largest action space)
-            activation_function (str): Activation function to use: linear, sigmoid, tanh, relu
-            learning_rate (float): The rate of which the network will learn
+            input_shape (list[int]): Shape of input params/features
+            output_lenght (int):  Max output params (largest action space)
+            hidden_layers (list[int], optional): Number of units (neurons) per layer. Defaults to [128, 128, 128].
+            activation_function (str, optional): Activation function to use: linear, sigmoid, tanh, relu. Defaults to "relu".
+            learning_rate (float, optional): The rate of which the network will learn (0,1]. Defaults to 0.001.
+            batch_size (int, optional): Minibatch size for each gradient update. Defaults to 32.
+            discount_factor (int, optional): Reward importance [0,1]. Defaults to 1.
+            max_grad_norm (float, optional): Max value for gradient clipping. Defaults to 10.
+            device (Union[torch.device, str], optional): Device the network should use. Defaults to "auto" meaning that it will use GPU if available.
         """
         # Inherit from nn.Module
         super(ANET, self).__init__()
 
-        # Check params
-        is_sequence_of_type("input_shape", input_shape, tuple, int, min=1, max=2)
-        is_sequence_of_type("hidden_units", hidden_layers, list, int, min=1)
-        is_int("output_lenght", output_lenght, min=1)
-
         # Set params
         self.activation_function = set_activation_class(activation_function)
+        self.learning_rate = learning_rate
+        self.batch_size = batch_size
+        self.discount_factor = discount_factor
+        self.gradient_steps = gradient_steps
+        self.max_grad_norm = max_grad_norm
+        self.device = get_device(device)
 
         # Add layers
         modules = []
@@ -205,11 +215,16 @@ def scale_prediction(
         np.ndarray:  Probability distribution for the legal actions
     """
     # Set predictions of illegal actions to 0
-    illegal_actions = np.isin(all_actions, legal_actions).astype(int)  # mask of 0 and 1
-    x = np.multiply(x, illegal_actions)
+    mask_legal_actions = isin(all_actions, legal_actions)  # mask of 0 and 1
+    x = np.multiply(x, mask_legal_actions)
 
     # Normalize
-    x = x / np.sum(x)
+    x_sum = np.sum(x)
+    if x_sum != 0:
+        # in the few cases where the model gives zero chance of winning to legal actions, return the mask
+        x = x / x_sum
+    else:
+        x = mask_legal_actions
     return x
 
 
@@ -249,3 +264,41 @@ def init_weights_uniform(model):
         y = 1.0 / np.sqrt(n)
         model.weight.data.uniform_(-y, y)
         model.bias.data.fill_(0)
+
+
+def get_device(device: Union[torch.device, str]) -> torch.device:
+    """Get the pytorch device
+
+    Args:
+        device (Union[torch.device, str]): A pytorch device, or "auto", "cuda", "cpu"
+
+    Returns:
+        torch.device: Device to use
+    """
+
+    # Auto, set cuda
+    if device == "auto":
+        device = "cuda"
+
+    # Set device
+    if not torch.cuda.is_available() or device == "cpu":
+        return torch.device("cpu")
+    return torch.device(device)
+
+
+def isin(all_actions, legal_actions) -> np.ndarray:
+    mask = []
+
+    legal_index = 0
+    max_index = len(legal_actions) - 1
+
+    for action in all_actions:
+        if legal_index <= max_index:
+            if action == legal_actions[legal_index]:
+                mask.append(1)
+                legal_index += 1
+            else:
+                mask.append(0)
+        else:
+            mask.append(0)
+    return np.array(mask)

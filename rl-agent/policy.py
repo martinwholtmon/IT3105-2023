@@ -11,34 +11,24 @@ from neural_net import ANET
 class Policy:
     def __init__(
         self,
-        neural_net,
-        M,
-        # learning_rate,
-        # discount_factor,
-        exploration_factor,
+        neural_net: ANET,
+        M: int,
+        exploration_factor: float = 1,
+        exploration_fraction: float = 0,
     ) -> None:
         """Initiate the MCTS policy
 
         Args:
+            neural_net (ANET): the neural network to train and use for prediction
             M (int): Simulations of MCTS followed by a rollout
-            learning_rate (float): Learning rate (0,1]
-            discount_factor (float): Reward importance [0,1]
-            exploration_factor (float): How explorative the MCTS is
+            exploration_factor (float, optional): How explorative the MCTS is. Defaults to 1.
+            exploration_fraction (float, optional): fraction which the exploration rate is reduced each episode. Defaults to 0.
         """
-        # Check params
-        if M < 1:
-            raise ValueError("You must run at least one MCTS simulation")
-        # if learning_rate <= 0 or learning_rate > 1:
-        #     raise ValueError("Alpha (learning rate) must be in the interval (0,1]")
-        # if discount_factor < 0 or discount_factor > 1:
-        #     raise ValueError("Gamma (Reward importance) must be in the interval [0,1]")
-
         # Set params
         self.neural_net: ANET = neural_net
         self.M = M
-        # self.learning_rate = learning_rate  # TODO: Remove if unused
-        # self.discount_factor = discount_factor  # TODO: Remove if unused
         self.exploration_factor = exploration_factor
+        self.exploration_fraction = exploration_fraction
         self.rbuf: "list[tuple[State, np.ndarray]]" = []
 
     def update(self):
@@ -58,7 +48,11 @@ class Policy:
         """
         if training_mode:
             action_probabilities = mcts(
-                state, self.neural_net, self.M, self.exploration_factor
+                state,
+                self.neural_net,
+                self.M,
+                self.exploration_factor,
+                # TODO: self.exploration_fraction,
             )
             self._rbuf_add(state, action_probabilities)
         else:
