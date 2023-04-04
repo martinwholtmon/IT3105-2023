@@ -197,4 +197,4 @@ def backpropagation(node: Node, reward: float):
     while node is not None:
         node.update(reward)
         node = node.parent
-        reward -= reward  # negate the reward because it's a min-max kind of situation
+        # reward -= reward  # negate the reward because it's a min-max kind of situation
