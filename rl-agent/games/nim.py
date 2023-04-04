@@ -1,6 +1,5 @@
 """Define the game state for Nim
 """
-import random
 import math
 import numpy as np
 from state_manager import State
@@ -50,10 +49,6 @@ class Nim(State):
         self._next_player()
         self._update_legal_actions()
 
-    def sample(self) -> any:
-        """Return a random legal action"""
-        return random.choice(self.legal_actions)
-
     def is_terminated(self) -> bool:
         """Check if the game is finished
 
@@ -61,12 +56,6 @@ class Nim(State):
             bool: Game is finished
         """
         return np.sum(self.current_state) == 0
-
-    def reset(self, seed):
-        """Resets the game"""
-        self.current_player = 1
-        self._create_init_state()
-        self._reset_legal_actions()
 
     def clone(self):
         """Clone/dereference the game state"""
@@ -76,12 +65,6 @@ class Nim(State):
         new_state.legal_actions = self.legal_actions.copy()
         new_state.current_player = self.current_player
         return new_state
-
-    def next_state(self, action):
-        """Clones the current game state, and returns the next game state"""
-        next_state = self.clone()
-        next_state.perform_action(action)
-        return next_state
 
     def _create_init_state(self):
         """Creates the initial state.
@@ -126,11 +109,3 @@ class Nim(State):
                 for action in heap_actions:
                     actions.append((i, action))
         return actions
-
-    def _update_legal_actions(self):
-        """Updates the legal actions dependent on values in the heaps"""
-        self.legal_actions = self._generate_actions()
-
-    def _reset_legal_actions(self):
-        """Resets the list of legal actions"""
-        self.legal_actions = self._generate_actions()
