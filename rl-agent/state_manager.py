@@ -44,7 +44,7 @@ class State(ABC):
 
     @abstractmethod
     def _generate_actions(self) -> list[any]:
-        """Generates the actions for the current state"""
+        """Generates the legal actions for the current state"""
 
     def sample(self) -> any:
         """Return a random legal action"""
@@ -54,7 +54,7 @@ class State(ABC):
         """Resets the game"""
         self.current_player = 1
         self._create_init_state()
-        self._reset_legal_actions()
+        self._update_legal_actions()
 
     def next_state(self, action):
         """Clones the current game state, and returns the next game state"""
@@ -81,10 +81,6 @@ class State(ABC):
 
     def _update_legal_actions(self):
         """Updates the legal actions dependent on values in the heaps"""
-        self.legal_actions = self._generate_actions()
-
-    def _reset_legal_actions(self):
-        """Resets the list of legal actions"""
         self.legal_actions = self._generate_actions()
 
 

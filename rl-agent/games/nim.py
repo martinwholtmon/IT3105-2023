@@ -37,7 +37,6 @@ class Nim(State):
         self._create_init_state()
         self.actions = self._generate_actions()
         self._update_legal_actions()
-        self._reset_legal_actions()
 
     def perform_action(self, action):
         """Perform an action in the state"""
