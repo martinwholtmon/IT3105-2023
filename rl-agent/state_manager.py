@@ -2,8 +2,8 @@
 It is essentially the gym environment for the games
 """
 from abc import ABC, abstractmethod
-import numpy as np
 import random
+import numpy as np
 
 
 class State(ABC):
