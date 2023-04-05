@@ -1,0 +1,216 @@
+"""Define the game state for Hex
+"""
+from __future__ import annotations
+import copy
+import numpy as np
+from state_manager import State
+
+
+class _Cell:
+    def __init__(self, pos: int, owner: int = 0, neighbors: list[_Cell] = None) -> None:
+        self.pos = pos
+        self.owner = owner
+        if neighbors is None:
+            self.neighbors: list[_Cell] = []
+        else:
+            self.neighbors = neighbors
+
+
+class Hex(State):
+    """The game of Hex:
+    The game of hex is a board of diamond shape where each player own the oposite side
+    of the diamond (top sides), where the goal is to connect to their diagonal side first
+    (connected chain of pieces between the two sides).
+        Player 1: North-west -> south-east
+        Player 2: North-east -> south-west
+
+    Legal moves are all the positions that are available. Once a pieces has been placed, it cannot be removed.
+
+
+    Representation:
+        This game will have two representations:
+            current_state: 1d array with ints (0-2) dependent on game state and ownership.
+            This state is fed into the neural network.
+            game_state: This will be a 2d array containing objects (_Cell)
+            for each position on the board. Includes neighbor relationships etc..
+    """
+
+    def __init__(self, size: int) -> None:
+        super().__init__()
+        self.game_state: list[list[_Cell]] = []
+        self.size = size
+        self.player_one_goal = list(range(self.size))
+        self.player_two_goal = [i * self.size for i in range(self.size)]
+
+        # Update state and action space
+        self._create_init_state()
+        self.actions = self._generate_actions()
+        self.legal_actions = self.actions.copy()
+        self.is_terminated()
+
+    def perform_action(self, action: tuple[int, int]):
+        """Perform an action in the state"""
+        y, x = action
+
+        # Update cell
+        cell: _Cell = self.game_state[y][x]
+        cell.owner = self.current_player
+
+        # Update simple board
+        self.current_state[cell.pos] = self.current_player
+
+        # Update legal actions
+        self._update_legal_actions(action)
+        self._next_player()
+
+    def is_terminated(self) -> bool:
+        """Check if the game is finished.
+
+        When reached diagonal side, check the ownership towards ownerships side. If a path is found, return true.
+
+        Returns:
+            bool: Game is finished
+        """
+        # Check states for p1 (top -> bottom)
+        for point in self.game_state[-1]:
+            if point.owner == 1:
+                if complete_path(
+                    point, player=1, goal_pos=self.player_one_goal, visited=[]
+                ):
+                    return True
+
+        # Check states for p2 (left -> right)
+        for point in [row[-1] for row in self.game_state]:
+            if point.owner == 2:
+                if complete_path(
+                    point, player=2, goal_pos=self.player_two_goal, visited=[]
+                ):
+                    return True
+        return False
+
+    def clone(self):
+        """Clone/dereference the game state"""
+        # Create shallow copy
+        new_state = copy.copy(self)
+
+        # Update attributes that needs dereferencing (int are immutable, lists/numpy objects are not)
+        new_state.game_state = copy.deepcopy(self.game_state)
+        new_state.current_state = self.current_state.copy()
+        new_state.legal_actions = self.legal_actions.copy()
+        return new_state
+
+    def _create_init_state(self):
+        """Creates the initial state.
+
+        The game state will be represented in a 2d array in a square form
+        even though the game has a diamond shape. In the cases where we want
+        to print/display the board, we will just rotate the it 45 degrees to the right.
+
+        So, the first player owns top and bottom, while player two own left and right.
+
+        Meaning that:
+            - top left of the board will be the top position
+            - bottom right will be the bottom
+            - top right will be right
+            - bottom left will left
+        """
+        # Create the simplified state
+        self.current_state = np.zeros((self.size**2,), dtype=int)
+
+        # Generate all cells and add to game state
+        index = 0
+        self.game_state.clear()
+        for y in range(self.size):
+            self.game_state.append([])
+            for x in range(self.size):
+                self.game_state[y].append(_Cell(pos=index))
+                index += 1
+
+        # Assign neighbors for each cell
+        for y in range(self.size):
+            for x in range(self.size):
+                cell = self.game_state[y][x]
+                neighboring_points = find_neighboring_points(
+                    x=x, y=y, max=self.size - 1
+                )
+                for px, py in neighboring_points:
+                    cell.neighbors.append(self.game_state[py][px])
+
+    def _generate_actions(self) -> list[any]:
+        """Generates the legal actions for the initial state"""
+        legal_actions = []
+        for y in range(self.size):
+            for x in range(self.size):
+                legal_actions.append((y, x))
+        return legal_actions
+
+    def _update_legal_actions(self, action):
+        """Updates the legal actions dependent on values in the heaps"""
+        self.legal_actions.remove(action)
+
+
+def find_neighboring_points(x: int, y: int, max: int) -> list[tuple[int, int]]:
+    """Given a point, it will find evert neighboring point
+
+    Args:
+        x (int): x-axis
+        y (int): y-axis
+        max (int): y-axis
+
+    Returns:
+        list[tuple[int, int]]: tuples of neighboring points
+    """
+    points = []
+
+    # Up
+    if y > 0:
+        points.append((x, y - 1))
+        # up right
+        if x < max:
+            points.append((x + 1, y - 1))
+
+    # left
+    if x > 0:
+        points.append((x - 1, y))
+
+    # right
+    if x < max:
+        points.append((x + 1, y))
+
+    # down
+    if y < max:
+        points.append((x, y + 1))
+        # down left
+        if x > 0:
+            points.append((x - 1, y + 1))
+    return points
+
+
+def complete_path(
+    cell: _Cell, player: int, goal_pos: list[int], visited: list[_Cell]
+) -> bool:
+    """This method paths towards the start position to see if we have a complete path.
+    To make sure we are not looping, we cannot visit a node/cell twice
+
+    Args:
+        cell (_Cell): _description_
+        player (int): Player id.
+            Player 1: Top -> bottom
+            Player 2: Left -> right
+    Returns:
+        bool: Has complete path
+    """
+    # Reached base case
+    if cell.pos in goal_pos:
+        return True
+
+    # Explore
+    visted_list = visited.copy()
+    for neighbor in cell.neighbors:
+        if neighbor not in visted_list and neighbor.owner == player:
+            visted_list.append(neighbor)
+            if complete_path(neighbor, player, goal_pos, visted_list):
+                return True
+
+    # Did not find path
+    return False
