@@ -46,6 +46,10 @@ class State(ABC):
     def _generate_actions(self) -> list[any]:
         """Generates the legal actions for the current state"""
 
+    @abstractmethod
+    def _update_legal_actions(self, action=None):
+        """Updates the legal actions"""
+
     def sample(self) -> any:
         """Return a random legal action"""
         return random.choice(self.legal_actions)
@@ -54,7 +58,7 @@ class State(ABC):
         """Resets the game"""
         self.current_player = 1
         self._create_init_state()
-        self._update_legal_actions()
+        self.legal_actions = self.actions.copy()
 
     def next_state(self, action):
         """Clones the current game state, and returns the next game state"""
@@ -78,10 +82,6 @@ class State(ABC):
         """Change the current_player in the state to the next player"""
         if not self.is_terminated():
             self.current_player = (self.current_player % self.n_players) + 1
-
-    def _update_legal_actions(self):
-        """Updates the legal actions dependent on values in the heaps"""
-        self.legal_actions = self._generate_actions()
 
 
 class Env:
