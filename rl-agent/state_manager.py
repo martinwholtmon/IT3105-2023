@@ -2,6 +2,7 @@
 It is essentially the gym environment for the games
 """
 from abc import ABC, abstractmethod
+import random
 import numpy as np
 
 
@@ -26,10 +27,6 @@ class State(ABC):
         """Perform an action in the state"""
 
     @abstractmethod
-    def sample(self) -> any:
-        """Return a random legal action"""
-
-    @abstractmethod
     def is_terminated(self) -> bool:
         """Check if the game is finished
 
@@ -38,16 +35,36 @@ class State(ABC):
         """
 
     @abstractmethod
-    def reset(self, seed):
-        """Resets the game"""
-
-    @abstractmethod
     def clone(self):
         """Clone/dereference the game state"""
 
     @abstractmethod
+    def _create_init_state(self):
+        """Creates the initial state."""
+
+    @abstractmethod
+    def _generate_actions(self) -> list[any]:
+        """Generates the legal actions for the current state"""
+
+    @abstractmethod
+    def _update_legal_actions(self, action=None):
+        """Updates the legal actions"""
+
+    def sample(self) -> any:
+        """Return a random legal action"""
+        return random.choice(self.legal_actions)
+
+    def reset(self, seed):
+        """Resets the game"""
+        self.current_player = 1
+        self._create_init_state()
+        self.legal_actions = self.actions.copy()
+
     def next_state(self, action):
         """Clones the current game state, and returns the next game state"""
+        next_state = self.clone()
+        next_state.perform_action(action)
+        return next_state
 
     def get_reward(self) -> float:
         """Get the reward

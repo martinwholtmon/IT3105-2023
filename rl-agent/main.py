@@ -1,6 +1,7 @@
 import argparse
 from state_manager import Env
 from games.nim import Nim
+from games.hex import Hex
 from agent import RLAgent
 from policy import Policy
 from neural_net import ANET
@@ -21,7 +22,8 @@ args = parser.parse_args()
 
 def main():
     # Load the game
-    game = Nim(12, 4, 3)
+    # game = Nim(12, 4, 3)
+    game = Hex(4)
 
     # Define the environment
     env = Env(game)

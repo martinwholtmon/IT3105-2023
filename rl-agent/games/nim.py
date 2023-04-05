@@ -1,7 +1,7 @@
 """Define the game state for Nim
 """
-import random
 import math
+import copy
 import numpy as np
 from state_manager import State
 
@@ -37,8 +37,7 @@ class Nim(State):
         # Update state and action space
         self._create_init_state()
         self.actions = self._generate_actions()
-        self._update_legal_actions()
-        self._reset_legal_actions()
+        self.legal_actions = self.actions.copy()
 
     def perform_action(self, action):
         """Perform an action in the state"""
@@ -50,10 +49,6 @@ class Nim(State):
         self._next_player()
         self._update_legal_actions()
 
-    def sample(self) -> any:
-        """Return a random legal action"""
-        return random.choice(self.legal_actions)
-
     def is_terminated(self) -> bool:
         """Check if the game is finished
 
@@ -62,26 +57,15 @@ class Nim(State):
         """
         return np.sum(self.current_state) == 0
 
-    def reset(self, seed):
-        """Resets the game"""
-        self.current_player = 1
-        self._create_init_state()
-        self._reset_legal_actions()
-
     def clone(self):
         """Clone/dereference the game state"""
-        new_state = Nim(self.initial_pieces, self.max_remove_pieces, self.heaps)
-        new_state.current_state = self.current_state.copy()  # Dereference
-        new_state.actions = self.actions  # Reference the list as its constant
-        new_state.legal_actions = self.legal_actions.copy()
-        new_state.current_player = self.current_player
-        return new_state
+        # Create shallow copy
+        new_state = copy.copy(self)
 
-    def next_state(self, action):
-        """Clones the current game state, and returns the next game state"""
-        next_state = self.clone()
-        next_state.perform_action(action)
-        return next_state
+        # Update attributes that needs dereferencing (int are immutable, lists/numpy objects are not)
+        new_state.current_state = self.current_state.copy()
+        new_state.legal_actions = self.legal_actions.copy()
+        return new_state
 
     def _create_init_state(self):
         """Creates the initial state.
@@ -118,7 +102,7 @@ class Nim(State):
         self.current_state = np.array(state)
 
     def _generate_actions(self) -> list[any]:
-        """Generates the actions for the current state"""
+        """Generates the legal actions for the current state"""
         actions = []
         for i, heap in enumerate(self.current_state):
             if heap > 0:
@@ -127,10 +111,6 @@ class Nim(State):
                     actions.append((i, action))
         return actions
 
-    def _update_legal_actions(self):
-        """Updates the legal actions dependent on values in the heaps"""
-        self.legal_actions = self._generate_actions()
-
-    def _reset_legal_actions(self):
-        """Resets the list of legal actions"""
+    def _update_legal_actions(self, action=None):
+        """Updates the legal actions"""
         self.legal_actions = self._generate_actions()
