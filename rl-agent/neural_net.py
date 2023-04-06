@@ -94,15 +94,16 @@ class ANET(nn.Module):
             state (State): game state
 
         Returns:
-            np.ndarray: action probabilities
+            int: index of the action to perform
         """
         input = np_to_tensor(state.current_state, state.current_player).to(self.device)
-        pred = tensor_to_np(self.forward(input))
-        return scale_prediction(
-            pred,
+        output = tensor_to_np(self.forward(input))
+        scaled_output = scale_prediction(
+            output,
             state.legal_actions,
             state.actions,
         )
+        return np.argmax(scaled_output)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Do a forward pass in the network and return predictions.

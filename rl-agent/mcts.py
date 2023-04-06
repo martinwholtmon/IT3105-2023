@@ -180,8 +180,8 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
         float: The reward
     """
     while not state.is_terminated():
-        action_probabilities = policy.predict(state)
-        state.perform_action(state.actions[np.argmax(action_probabilities)])
+        action_idx = policy.predict(state)
+        state.perform_action(state.actions[action_idx])
     return state.get_reward()
 
 
