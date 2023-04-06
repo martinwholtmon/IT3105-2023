@@ -84,6 +84,9 @@ class ANET(nn.Module):
         # Init weights and biases
         self.apply(init_weights_uniform)
 
+        # Set device
+        self.to(self.device)
+
     def predict(self, state: State) -> np.ndarray:
         """Given a state, return the action probabilities for all actions in the game
 
@@ -93,7 +96,7 @@ class ANET(nn.Module):
         Returns:
             np.ndarray: action probabilities
         """
-        input = np_to_tensor(state.current_state, state.current_player)
+        input = np_to_tensor(state.current_state, state.current_player).to(self.device)
         pred = tensor_to_np(self.forward(input))
         return scale_prediction(
             pred,
@@ -131,8 +134,8 @@ class ANET(nn.Module):
         ]  # TODO: Probably do some q value stuff here?
 
         # Convert to tensors
-        input = torch.FloatTensor(np.array(input))
-        target = torch.FloatTensor(np.array(target))
+        input = torch.FloatTensor(np.array(input)).to(self.device)
+        target = torch.FloatTensor(np.array(target)).to(self.device)
 
         # Do forward pass
         input = self.forward(input)
@@ -190,7 +193,7 @@ def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
     Returns:
         np.ndarray: action probabilities
     """
-    return tensor.detach().numpy()
+    return tensor.cpu().data.numpy()
 
 
 def scale_prediction(

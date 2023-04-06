@@ -36,11 +36,12 @@ def main():
         output_lenght=action_shape,
         hidden_layers=[128, 128, 128, 128],
         activation_function="relu",
-        learning_rate=0.01,
+        learning_rate=0.001,
         batch_size=32,
         discount_factor=1,  # assumed to be 1
         gradient_steps=1,
         max_grad_norm=1,
+        device="cpu",
     )
 
     # Define the RL Policy using MCTS
