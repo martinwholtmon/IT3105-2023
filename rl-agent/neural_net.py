@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from state_manager import State
+from helpers import getpath
 
 
 class ANET(nn.Module):
@@ -116,7 +117,7 @@ class ANET(nn.Module):
         """
         return self.layers(x)
 
-    def train(self, batch: list[tuple[State, np.ndarray]]):
+    def update(self, batch: list[tuple[State, np.ndarray]]):
         """Sample the replay buffer and do updates (gradient decent)
 
         Args:
@@ -149,6 +150,41 @@ class ANET(nn.Module):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+    def load(self, name: str, continue_training=True):
+        """Tries to load a saved model
+
+        Args:
+            name (str): name of the model
+        """
+        # Load checkpoint
+        filepath = getpath("models", name)
+        checkpoint = torch.load(filepath)
+
+        # Update model
+        self.load_state_dict(checkpoint["model_state_dict"])
+        self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+        if continue_training:
+            self.train()
+        else:
+            self.eval()
+
+    def save(self, name: str):
+        """Saves the current model
+
+        Args:
+            name (str): name of the model
+        """
+        filepath = getpath("models", name)
+        print(filepath)
+        torch.save(
+            {
+                "model_state_dict": self.state_dict(),
+                "optimizer_state_dict": self.optimizer.state_dict(),
+            },
+            filepath,
+        )
 
 
 def transform_state(state: np.ndarray, player: int) -> np.ndarray:

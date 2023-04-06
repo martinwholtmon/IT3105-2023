@@ -2,6 +2,7 @@
 
 Note: Subject to refactor as the policy is really the weights of the deep learning module
 """
+from pathlib import Path
 import numpy as np
 from mcts import mcts
 from state_manager import State
@@ -34,7 +35,7 @@ class Policy:
 
     def update(self):
         """Update the target policy"""
-        self.neural_net.train(self.rbuf)
+        self.neural_net.update(self.rbuf)
         self.rbuf_clear()
         self.subtree = None
 
@@ -65,6 +66,15 @@ class Policy:
             return action
         else:
             return state.actions[self.neural_net.predict(state)]
+
+    def save(self, uuid, game_name, episode):
+        """Invoke the save function on the neural network
+
+        Args:
+            game_name (str): name of the game
+            episode (str): Episode number/final state
+        """
+        self.neural_net.save(f"{game_name}_{uuid}_{episode}.pth")
 
     def _rbuf_add(self, state: State, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer
