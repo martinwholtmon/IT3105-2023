@@ -84,7 +84,11 @@ class Node:
 
 
 def mcts(
-    state: State, policy: ANET, simulations: int, exploration_factor: float
+    subtree: Node,
+    state: State,
+    policy: ANET,
+    simulations: int,
+    exploration_factor: float,
 ) -> tuple[any, np.ndarray]:
     """Run the MCTS algorithm with M simulations to select the best action to perform
 
@@ -99,8 +103,10 @@ def mcts(
 
     """
     # Take a deepcopy of the current state.
-    # If it use a lot of memory, create own copy function for each game (implements State)
-    root = Node(state)
+    if subtree is None:
+        root = Node(state)
+    else:
+        root = subtree
 
     # Run MCTS
     for _ in range(simulations):
@@ -128,7 +134,15 @@ def mcts(
 
     # Normalize
     action_probabilities = action_probabilities / np.sum(action_probabilities)
-    return action_probabilities
+
+    # find best action and retrieve the subtree
+    action = state.actions[np.argmax(action_probabilities)]
+    subtree = None
+    for tree in root.children:
+        if tree.action == action:
+            subtree = tree
+            break
+    return action, action_probabilities, subtree
 
 
 def tree_search(node: Node, state: State, exploration_factor: float):

@@ -30,11 +30,13 @@ class Policy:
         self.exploration_factor = exploration_factor
         self.exploration_fraction = exploration_fraction
         self.rbuf: "list[tuple[State, np.ndarray]]" = []
+        self.subtree = None
 
     def update(self):
         """Update the target policy"""
         self.neural_net.train(self.rbuf)
         self.rbuf_clear()
+        self.subtree = None
 
     def select_action(self, state: State, training_mode: bool = False) -> any:
         """Select the best action given policy
@@ -47,7 +49,8 @@ class Policy:
             any: Action to perform
         """
         if training_mode:
-            action_probabilities = mcts(
+            action, action_probabilities, subtree = mcts(
+                self.subtree,
                 state,
                 self.neural_net,
                 self.M,
@@ -55,9 +58,13 @@ class Policy:
                 # TODO: self.exploration_fraction,
             )
             self._rbuf_add(state, action_probabilities)
+
+            # Set subtree
+            self.subtree = subtree
+
+            return action
         else:
-            action_probabilities = self.neural_net.predict(state)
-        return state.actions[np.argmax(action_probabilities)]
+            return state.actions[self.neural_net.predict(state)]
 
     def _rbuf_add(self, state: State, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer
