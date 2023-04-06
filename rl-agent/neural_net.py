@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from state_manager import State
+from helpers import getpath
 
 
 class ANET(nn.Module):
@@ -84,6 +85,9 @@ class ANET(nn.Module):
         # Init weights and biases
         self.apply(init_weights_uniform)
 
+        # Set device
+        self.to(self.device)
+
     def predict(self, state: State) -> np.ndarray:
         """Given a state, return the action probabilities for all actions in the game
 
@@ -91,15 +95,16 @@ class ANET(nn.Module):
             state (State): game state
 
         Returns:
-            np.ndarray: action probabilities
+            int: index of the action to perform
         """
-        input = np_to_tensor(state.current_state, state.current_player)
-        pred = tensor_to_np(self.forward(input))
-        return scale_prediction(
-            pred,
+        input = np_to_tensor(state.current_state, state.current_player).to(self.device)
+        output = tensor_to_np(self.forward(input))
+        scaled_output = scale_prediction(
+            output,
             state.legal_actions,
             state.actions,
         )
+        return np.argmax(scaled_output)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Do a forward pass in the network and return predictions.
@@ -112,7 +117,7 @@ class ANET(nn.Module):
         """
         return self.layers(x)
 
-    def train(self, batch: list[tuple[State, np.ndarray]]):
+    def update(self, batch: list[tuple[State, np.ndarray]]):
         """Sample the replay buffer and do updates (gradient decent)
 
         Args:
@@ -131,8 +136,8 @@ class ANET(nn.Module):
         ]  # TODO: Probably do some q value stuff here?
 
         # Convert to tensors
-        input = torch.FloatTensor(np.array(input))
-        target = torch.FloatTensor(np.array(target))
+        input = torch.FloatTensor(np.array(input)).to(self.device)
+        target = torch.FloatTensor(np.array(target)).to(self.device)
 
         # Do forward pass
         input = self.forward(input)
@@ -145,6 +150,41 @@ class ANET(nn.Module):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+    def load(self, name: str, continue_training=True):
+        """Tries to load a saved model
+
+        Args:
+            name (str): name of the model
+        """
+        # Load checkpoint
+        filepath = getpath("models", name)
+        checkpoint = torch.load(filepath)
+
+        # Update model
+        self.load_state_dict(checkpoint["model_state_dict"])
+        self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+        if continue_training:
+            self.train()
+        else:
+            self.eval()
+
+    def save(self, name: str):
+        """Saves the current model
+
+        Args:
+            name (str): name of the model
+        """
+        filepath = getpath("models", name)
+        print(filepath)
+        torch.save(
+            {
+                "model_state_dict": self.state_dict(),
+                "optimizer_state_dict": self.optimizer.state_dict(),
+            },
+            filepath,
+        )
 
 
 def transform_state(state: np.ndarray, player: int) -> np.ndarray:
@@ -190,7 +230,7 @@ def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
     Returns:
         np.ndarray: action probabilities
     """
-    return tensor.detach().numpy()
+    return tensor.cpu().data.numpy()
 
 
 def scale_prediction(

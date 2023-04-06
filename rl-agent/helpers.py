@@ -1,4 +1,5 @@
 """Helper functions"""
+from pathlib import Path
 
 
 def is_sequence_of_type(
@@ -46,3 +47,10 @@ def _check_length(list, max, min) -> tuple[bool, str]:
     if max is not None and len(list) > max or min is not None and len(list) < min:
         return False, f"Must have more than {max} elements, and less than {min}"
     return True, ""
+
+
+def getpath(basedir, filename) -> str:
+    # Retrieve root folder
+    root = Path(__file__).parent.parent
+    filename = root / basedir / filename
+    return str(filename)
