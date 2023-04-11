@@ -1,6 +1,6 @@
 """This module will contain the MCTS algorithm"""
 from __future__ import annotations
-import copy
+import random
 import numpy as np
 from state_manager import State
 from neural_net import ANET
@@ -14,9 +14,14 @@ class Node:
         self.parent = parent  # Previous game state
         self.action = action
         self.children: "list[Node]" = []  # Child states by performing actions
-        self.untried_actions: list = state.legal_actions.copy()  # legal actions
+        self.untried_actions: list = np.where(state.legal_actions == 1)[
+            0
+        ].tolist()  # legal actions
         self.value = 0  # Predicts who will win (wins)
         self.num_visits = 0  # Might be used to keep exploration high
+
+        # Shuffle the list of untried actions
+        random.shuffle(self.untried_actions)
 
     def is_leaf(self) -> bool:
         """Check if node is leaf node
@@ -137,7 +142,11 @@ def mcts(
 
     # find best action and retrieve the subtree
     action = np.argmax(action_probabilities)
-    subtree = root.children[action]
+    subtree = None
+    for tree in root.children:
+        if tree.action == action:
+            subtree = tree
+            break
     return action, action_probabilities, subtree
 
 

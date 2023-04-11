@@ -55,7 +55,7 @@ class RLAgent:
 
                 # Perform action
                 # print(
-                #     f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={action}"
+                #     f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={state.actions[action]}"
                 # )
                 next_state, reward, terminated = self.env.step(action)
 

@@ -49,8 +49,6 @@ class Hex(State):
 
     def perform_action(self, action: int):
         """Perform an action in the state"""
-        print(action)
-        print(self.actions[action])
         y, x = self.actions[action]
 
         # Update cell

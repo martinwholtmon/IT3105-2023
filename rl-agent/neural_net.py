@@ -102,7 +102,6 @@ class ANET(nn.Module):
         scaled_output = scale_prediction(
             output,
             state.legal_actions,
-            state.actions,
         )
         return np.argmax(scaled_output)
 

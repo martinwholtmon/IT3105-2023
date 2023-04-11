@@ -61,12 +61,12 @@ class State(ABC):
         """Generates the legal actions for the current state"""
 
     @abstractmethod
-    def _update_legal_actions(self, action=None):
+    def _update_legal_actions(self, action):
         """Updates the legal actions"""
 
     def sample(self) -> any:
         """Return a random legal action"""
-        return random.choice(self.legal_actions)
+        return random.choice(np.where(self.legal_actions == 1)[0])
 
     def reset(self, seed):
         """Resets the game"""
