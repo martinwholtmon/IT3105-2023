@@ -45,12 +45,13 @@ class Hex(State):
         # Update state and action space
         self._create_init_state()
         self.actions = self._generate_actions()
-        self.legal_actions = self.actions.copy()
-        self.is_terminated()
+        self.legal_actions = np.ones(len(self.actions), dtype=np.int8)
 
-    def perform_action(self, action: tuple[int, int]):
+    def perform_action(self, action: int):
         """Perform an action in the state"""
-        y, x = action
+        print(action)
+        print(self.actions[action])
+        y, x = self.actions[action]
 
         # Update cell
         cell: _Cell = self.game_state[y][x]
@@ -66,7 +67,8 @@ class Hex(State):
     def is_terminated(self) -> bool:
         """Check if the game is finished.
 
-        When reached diagonal side, check the ownership towards ownerships side. If a path is found, return true.
+        When reached diagonal side, check the ownership towards ownerships side.
+        If a path is found, return true.
 
         Returns:
             bool: Game is finished
@@ -93,7 +95,8 @@ class Hex(State):
         # Create shallow copy
         new_state = copy.copy(self)
 
-        # Update attributes that needs dereferencing (int are immutable, lists/numpy objects are not)
+        # Update attributes that needs dereferencing
+        # (int are immutable, lists/numpy objects are not)
         new_state.game_state = copy.deepcopy(self.game_state)
         new_state.current_state = self.current_state.copy()
         new_state.legal_actions = self.legal_actions.copy()
@@ -138,15 +141,15 @@ class Hex(State):
 
     def _generate_actions(self) -> list[any]:
         """Generates the legal actions for the initial state"""
-        legal_actions = []
+        actions = []
         for y in range(self.size):
             for x in range(self.size):
-                legal_actions.append((y, x))
-        return legal_actions
+                actions.append((y, x))
+        return actions
 
     def _update_legal_actions(self, action):
         """Updates the legal actions dependent on values in the heaps"""
-        self.legal_actions.remove(action)
+        self.legal_actions[action] = 0
 
 
 def find_neighboring_points(x: int, y: int, max: int) -> list[tuple[int, int]]:

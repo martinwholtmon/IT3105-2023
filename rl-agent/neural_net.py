@@ -236,7 +236,6 @@ def tensor_to_np(tensor: torch.Tensor) -> np.ndarray:
 def scale_prediction(
     x: np.ndarray,
     legal_actions: np.ndarray,
-    all_actions: np.ndarray,
 ) -> np.ndarray:
     """The output layer must have a fixed number of outputs
     even though there might not be so many avaiable actions.
@@ -248,15 +247,12 @@ def scale_prediction(
 
     Args:
         x (np.ndarray): Probability distribution for all possible actions
-        legal_actions (np.ndarray): list of legal actions
-        all_actions (np.ndarray): All actions
+        legal_actions (np.ndarray): mask of legal actions (binary array)
 
     Returns:
         np.ndarray:  Probability distribution for the legal actions
     """
-    # Set predictions of illegal actions to 0
-    mask_legal_actions = isin(all_actions, legal_actions)  # mask of 0 and 1
-    x = np.multiply(x, mask_legal_actions)
+    x = np.multiply(x, legal_actions)
 
     # Normalize
     x_sum = np.sum(x)
@@ -264,7 +260,7 @@ def scale_prediction(
         # in the few cases where the model gives zero chance of winning to legal actions, return the mask
         x = x / x_sum
     else:
-        x = mask_legal_actions
+        x = legal_actions
     return x
 
 
@@ -324,21 +320,3 @@ def get_device(device: Union[torch.device, str]) -> torch.device:
     if not torch.cuda.is_available() or device == "cpu":
         return torch.device("cpu")
     return torch.device(device)
-
-
-def isin(all_actions, legal_actions) -> np.ndarray:
-    mask = []
-
-    legal_index = 0
-    max_index = len(legal_actions) - 1
-
-    for action in all_actions:
-        if legal_index <= max_index:
-            if action == legal_actions[legal_index]:
-                mask.append(1)
-                legal_index += 1
-            else:
-                mask.append(0)
-        else:
-            mask.append(0)
-    return np.array(mask)

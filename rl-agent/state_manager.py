@@ -20,11 +20,25 @@ class State(ABC):
         self.n_players = 2
         self.current_state: np.ndarray = None
         self.actions: "list[any]" = []
-        self.legal_actions: "list[any]" = []
+        self.legal_actions: np.ndarray = None
 
     @abstractmethod
     def perform_action(self, action):
-        """Perform an action in the state"""
+        """Perform an action index in the state
+
+
+        Args:
+            action (any): Action index to perform in the current state
+        """
+
+    # @abstractmethod
+    # def translate_external_action(self, action):
+    #     """Because the internal system only use indexes to represent action,
+    #     map the external action to an internal action before applying it to the game.
+
+    #     Args:
+    #         action (any): Action to perform
+    #     """
 
     @abstractmethod
     def is_terminated(self) -> bool:
@@ -58,7 +72,7 @@ class State(ABC):
         """Resets the game"""
         self.current_player = 1
         self._create_init_state()
-        self.legal_actions = self.actions.copy()
+        self.legal_actions = np.ones(len(self.actions), dtype=np.int8)
 
     def next_state(self, action):
         """Clones the current game state, and returns the next game state"""

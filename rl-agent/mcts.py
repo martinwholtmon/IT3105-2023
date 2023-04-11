@@ -128,20 +128,16 @@ def mcts(
     # Return action probabilities
     action_probabilities = np.zeros((len(state.actions),))
 
-    # input visit count for the legal actions
+    # Input visit counts
     for child in root.children:
-        action_probabilities[state.actions.index(child.action)] = child.num_visits
+        action_probabilities[child.action] = child.num_visits
 
     # Normalize
     action_probabilities = action_probabilities / np.sum(action_probabilities)
 
     # find best action and retrieve the subtree
-    action = state.actions[np.argmax(action_probabilities)]
-    subtree = None
-    for tree in root.children:
-        if tree.action == action:
-            subtree = tree
-            break
+    action = np.argmax(action_probabilities)
+    subtree = root.children[action]
     return action, action_probabilities, subtree
 
 
@@ -194,8 +190,8 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
         float: The reward
     """
     while not state.is_terminated():
-        action_idx = policy.predict(state)
-        state.perform_action(state.actions[action_idx])
+        action = policy.predict(state)
+        state.perform_action(action)
     return state.get_reward()
 
 
@@ -211,4 +207,3 @@ def backpropagation(node: Node, reward: float):
     while node is not None:
         node.update(reward)
         node = node.parent
-        # reward -= reward  # negate the reward because it's a min-max kind of situation
