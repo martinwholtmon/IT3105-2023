@@ -37,17 +37,17 @@ class Nim(State):
         # Update state and action space
         self._create_init_state()
         self.actions = self._generate_actions()
-        self.legal_actions = self.actions.copy()
+        self.legal_actions = np.ones(len(self.actions), dtype=np.int8)
 
     def perform_action(self, action):
         """Perform an action in the state"""
         # Get heap and stones to remove
-        heap, stones = action
+        heap, stones = self.actions[action]
 
         # Update state
         self.current_state[heap] -= stones
+        self._update_legal_actions(action)
         self._next_player()
-        self._update_legal_actions()
 
     def is_terminated(self) -> bool:
         """Check if the game is finished
@@ -111,6 +111,14 @@ class Nim(State):
                     actions.append((i, action))
         return actions
 
-    def _update_legal_actions(self, action=None):
+    def _update_legal_actions(self, action):
         """Updates the legal actions"""
-        self.legal_actions = self._generate_actions()
+        heap_modify, _ = self.actions[action]
+
+        # Check the rest of the legal options for the current heap
+        for index, value in enumerate(self.legal_actions):
+            if value == 1:
+                heap, stones = self.actions[index]
+                stones_left = self.current_state[heap]
+                if heap == heap_modify and (stones_left - stones) < 0:
+                    self.legal_actions[index] = 0

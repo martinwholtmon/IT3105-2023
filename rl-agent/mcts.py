@@ -1,6 +1,6 @@
 """This module will contain the MCTS algorithm"""
 from __future__ import annotations
-import copy
+import random
 import numpy as np
 from state_manager import State
 from neural_net import ANET
@@ -14,9 +14,14 @@ class Node:
         self.parent = parent  # Previous game state
         self.action = action
         self.children: "list[Node]" = []  # Child states by performing actions
-        self.untried_actions: list = state.legal_actions.copy()  # legal actions
+        self.untried_actions: list = np.where(state.legal_actions == 1)[
+            0
+        ].tolist()  # legal actions
         self.value = 0  # Predicts who will win (wins)
         self.num_visits = 0  # Might be used to keep exploration high
+
+        # Shuffle the list of untried actions
+        random.shuffle(self.untried_actions)
 
     def is_leaf(self) -> bool:
         """Check if node is leaf node
@@ -128,15 +133,15 @@ def mcts(
     # Return action probabilities
     action_probabilities = np.zeros((len(state.actions),))
 
-    # input visit count for the legal actions
+    # Input visit counts
     for child in root.children:
-        action_probabilities[state.actions.index(child.action)] = child.num_visits
+        action_probabilities[child.action] = child.num_visits
 
     # Normalize
     action_probabilities = action_probabilities / np.sum(action_probabilities)
 
     # find best action and retrieve the subtree
-    action = state.actions[np.argmax(action_probabilities)]
+    action = np.argmax(action_probabilities)
     subtree = None
     for tree in root.children:
         if tree.action == action:
@@ -194,8 +199,8 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
         float: The reward
     """
     while not state.is_terminated():
-        action_idx = policy.predict(state)
-        state.perform_action(state.actions[action_idx])
+        action = policy.predict(state)
+        state.perform_action(action)
     return state.get_reward()
 
 
@@ -211,4 +216,3 @@ def backpropagation(node: Node, reward: float):
     while node is not None:
         node.update(reward)
         node = node.parent
-        # reward -= reward  # negate the reward because it's a min-max kind of situation

@@ -65,7 +65,7 @@ class Policy:
 
             return action
         else:
-            return state.actions[self.neural_net.predict(state)]
+            return self.neural_net.predict(state)
 
     def save(self, uuid, game_name, episode):
         """Invoke the save function on the neural network
