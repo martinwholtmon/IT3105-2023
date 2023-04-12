@@ -74,7 +74,7 @@ class Policy:
             game_name (str): name of the game
             episode (str): Episode number/final state
         """
-        self.neural_net.save(f"{game_name}_{uuid}_{episode}.pth")
+        self.neural_net.save(f"{game_name}_{episode}_{uuid}.pth")
 
     def _rbuf_add(self, state: State, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer
