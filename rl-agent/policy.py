@@ -13,7 +13,7 @@ class Policy:
     def __init__(
         self,
         neural_net: ANET,
-        M: int,
+        M: int = 100,
         exploration_factor: float = 1,
         exploration_fraction: float = 0,
     ) -> None:
@@ -21,7 +21,7 @@ class Policy:
 
         Args:
             neural_net (ANET): the neural network to train and use for prediction
-            M (int): Simulations of MCTS followed by a rollout
+            M (int): Simulations of MCTS followed by a rollout. Defaults to 100
             exploration_factor (float, optional): How explorative the MCTS is. Defaults to 1.
             exploration_fraction (float, optional): fraction which the exploration rate is reduced each episode. Defaults to 0.
         """
