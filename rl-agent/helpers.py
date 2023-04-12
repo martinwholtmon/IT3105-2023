@@ -1,6 +1,8 @@
 """Helper functions"""
 from pathlib import Path
 
+BASEDIR_MODELS = Path(__file__).parent.parent / "models"
+
 
 def is_sequence_of_type(
     param_name, sequence, sequence_type, element_type, max: int = None, min: int = None
@@ -49,8 +51,14 @@ def _check_length(list, max, min) -> tuple[bool, str]:
     return True, ""
 
 
-def getpath(basedir, filename) -> str:
-    # Retrieve root folder
-    root = Path(__file__).parent.parent
-    filename = root / basedir / filename
+def get_model_path(filename) -> str:
+    """Get the full path of a model given filename
+
+    Args:
+        filename (str): name of model in the form of game_iteration_uuid.pth
+
+    Returns:
+        str: full path of the model
+    """
+    filename = BASEDIR_MODELS / filename
     return str(filename)
