@@ -5,6 +5,7 @@ from games.hex import Hex
 from agent import RLAgent
 from policy import Policy
 from neural_net import ANET
+from helpers import load_config
 
 # Define arguments
 parser = argparse.ArgumentParser(description="description")
@@ -21,9 +22,19 @@ args = parser.parse_args()
 
 
 def main():
+    # Load config
+    config = load_config()
+
     # Load the game
-    # game = Nim(12, 4, 3)
-    game = Hex(7)
+    game_type = config["game_type"]
+    game_params = config["game_params"]
+    match game_type:
+        case "Hex":
+            game = Hex(**game_params)
+        case "Nim":
+            game = Nim(**game_params)
+        case _:
+            raise NotImplementedError(f"{game_type} is not supported!")
 
     # Define the environment
     env = Env(game)
@@ -34,28 +45,23 @@ def main():
     neural_network = ANET(
         input_shape=game_shape,
         output_lenght=action_shape,
-        hidden_layers=[82, 82],
-        activation_function="relu",
-        learning_rate=0.001,
-        batch_size=32,
-        discount_factor=1,  # assumed to be 1
-        gradient_steps=1,
-        max_grad_norm=1,
-        device="cpu",
+        **config["neural_network_params"],
     )
 
     # Define the RL Policy using MCTS
     policy = Policy(
         neural_net=neural_network,
-        M=100,
-        exploration_factor=1,
-        exploration_fraction=1,
+        **config["policy_params"],
     )
 
     # # Define the agent
-    agent = RLAgent(env=env, policy=policy, episodes=5, epsilon=1, save_interval=2)
+    agent = RLAgent(
+        env=env,
+        policy=policy,
+        **config["agent_params"],
+    )
     agent.train()
-    agent.evaluate(games=25)
+    agent.evaluate(**config["topp_params"])
 
 
 if __name__ == "__main__":

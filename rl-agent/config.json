@@ -1,0 +1,32 @@
+{
+    "game_type": "Hex",
+    "game_params": {
+        "size": 4
+    },
+    "neural_network_params": {
+        "hidden_layers": [
+            82,
+            82
+        ],
+        "activation_function": "relu",
+        "learning_rate": 0.001,
+        "batch_size": 32,
+        "discount_factor": 1,
+        "gradient_steps": 1,
+        "max_grad_norm": 1,
+        "device": "cpu"
+    },
+    "policy_params": {
+        "M": 100,
+        "exploration_factor": 1,
+        "exploration_fraction": 1
+    },
+    "agent_params": {
+        "episodes": 5,
+        "epsilon": 1,
+        "save_interval": 2
+    },
+    "topp_params": {
+        "games": 25
+    }
+}
