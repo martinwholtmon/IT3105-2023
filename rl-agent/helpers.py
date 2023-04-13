@@ -1,6 +1,10 @@
 """Helper functions"""
 import json
 from pathlib import Path
+from state_manager import Env, State
+from games.hex import Hex
+from games.nim import Nim
+from neural_net import ANET
 
 TOPDIR = Path(__file__).parent.parent
 BASEDIR_MODELS = TOPDIR / "models"
@@ -74,5 +78,55 @@ def load_config(uuid: str = None) -> dict:
     return config
 
 
-if __name__ == "__main__":
-    print(load_config())
+def load_game(game_type, params) -> State:
+    """Will load the game given config file
+
+    Args:
+        game_type (str): name of the game
+        params (dict): params to init the game
+
+    Raises:
+        NotImplementedError: If the provided game does not exist
+
+    Returns:
+        State: initialized game
+    """
+    match game_type:
+        case "Hex":
+            return Hex(**params)
+        case "Nim":
+            return Nim(**params)
+        case _:
+            raise NotImplementedError(f"{game_type} is not supported!")
+
+
+def load_env(config) -> Env:
+    """Will load an environment with the selected game from config
+
+    Args:
+        config (dict): config file
+
+    Returns:
+        Env: Environment to play the game
+    """
+    game = load_game(config["game_type"], config["game_params"])
+    return Env(game)
+
+
+def load_net(env: Env, config: dict) -> ANET:
+    """Will load a neural network
+
+    Args:
+        env (Env): Current environment. Used to set correct input/output size
+        config (dict): config file
+
+    Returns:
+        ANET: Neural network
+    """
+    game_shape = env.state.current_state.shape
+    action_shape = len(env.state.legal_actions)
+    return ANET(
+        input_shape=game_shape,
+        output_lenght=action_shape,
+        **config["neural_network_params"],
+    )
