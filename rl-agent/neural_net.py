@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from state_manager import State
-from helpers import get_model_path
 
 
 class ANET(nn.Module):
@@ -150,14 +149,14 @@ class ANET(nn.Module):
         loss.backward()
         self.optimizer.step()
 
-    def load(self, name: str, continue_training=True):
+    def load(self, filepath: str, continue_training=True):
         """Tries to load a saved model
 
         Args:
             name (str): name of the model
         """
         # Load checkpoint
-        filepath = get_model_path(name)
+        print(f"Loading {filepath}")
         checkpoint = torch.load(filepath)
 
         # Update model
@@ -169,14 +168,12 @@ class ANET(nn.Module):
         else:
             self.eval()
 
-    def save(self, name: str):
+    def save(self, filepath: str):
         """Saves the current model
 
         Args:
             name (str): name of the model
         """
-        filepath = get_model_path(name)
-        print(filepath)
         torch.save(
             {
                 "model_state_dict": self.state_dict(),

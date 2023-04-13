@@ -1,61 +1,41 @@
-import argparse
-from state_manager import Env
-from games.nim import Nim
-from games.hex import Hex
 from agent import RLAgent
 from policy import Policy
-from neural_net import ANET
-
-# Define arguments
-parser = argparse.ArgumentParser(description="description")
-parser.add_argument("--render", action="store_true", help="render the environment")
-parser.add_argument(
-    "--log-interval",
-    type=int,
-    default=10,
-    metavar="N",
-    help="interval between training status logs (default: 10)",
-)
-args = parser.parse_args()
-# To use in code: if args.render:
+from helpers import load_config, load_env, load_net, get_latest_model_filename
 
 
 def main():
-    # Load the game
-    # game = Nim(12, 4, 3)
-    game = Hex(7)
+    # If we want to load old session and continue training,
+    # update this variable to the session UUID
+    session_uuid = None
+
+    # Load config
+    config = load_config(session_uuid)
 
     # Define the environment
-    env = Env(game)
+    env = load_env(config)
 
     # Define the neural network
-    game_shape = env.state.current_state.shape
-    action_shape = len(env.state.legal_actions)
-    neural_network = ANET(
-        input_shape=game_shape,
-        output_lenght=action_shape,
-        hidden_layers=[82, 82],
-        activation_function="relu",
-        learning_rate=0.001,
-        batch_size=32,
-        discount_factor=1,  # assumed to be 1
-        gradient_steps=1,
-        max_grad_norm=1,
-        device="cpu",
-    )
+    neural_network = load_net(env, config)
+
+    # if we load old mode, retrieve latest one
+    if session_uuid is not None:
+        neural_network.load(get_latest_model_filename(session_uuid), True)
 
     # Define the RL Policy using MCTS
     policy = Policy(
         neural_net=neural_network,
-        M=100,
-        exploration_factor=1,
-        exploration_fraction=1,
+        **config["policy_params"],
     )
 
     # # Define the agent
-    agent = RLAgent(env=env, policy=policy, episodes=5, epsilon=1, save_interval=2)
+    agent = RLAgent(
+        env=env,
+        policy=policy,
+        **config["agent_params"],
+        **config.get("custom", {}),
+    )
     agent.train()
-    agent.evaluate(games=25)
+    agent.evaluate(**config["topp_params"])
 
 
 if __name__ == "__main__":
