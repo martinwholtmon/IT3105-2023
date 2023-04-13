@@ -39,7 +39,17 @@ def get_model_filenames(uuid: str) -> list[str]:
     return filenames
 
 
-def save_config(uuid: str):
+def get_latest_model_filename(uuid: str) -> str:
+    """Will retrieve the filepath for the latest model in a training session
+
+    Args:
+        uuid (str): uuid for training session
+
+    Returns:
+        str: path to saved model
+    """
+    return get_model_filenames(uuid)[-1]
+
     """Will save the current settings to config
 
     Args:
