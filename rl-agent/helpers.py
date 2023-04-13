@@ -10,8 +10,8 @@ TOPDIR = Path(__file__).parent.parent
 BASEDIR_MODELS = TOPDIR / "models"
 
 
-def get_model_path(filename) -> str:
-    """Get the full path of a model given filename
+def build_model_path(filename) -> str:
+    """Build the full path of a model given filename
 
     Args:
         filename (str): name of model in the form of game_iteration_uuid.pth

@@ -75,7 +75,7 @@ class Policy:
             episode (str): Episode number/final state
         """
         # Save model
-        filepath = get_model_path(f"{game_name}_{episode}_{uuid}.pth")
+        filepath = build_model_path(f"{game_name}_{episode}_{uuid}.pth")
         self.neural_net.save(filepath)
 
         # Save config
