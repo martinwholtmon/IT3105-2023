@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from state_manager import State
-from helpers import getpath
+from helpers import get_model_path
 
 
 class ANET(nn.Module):
@@ -157,7 +157,7 @@ class ANET(nn.Module):
             name (str): name of the model
         """
         # Load checkpoint
-        filepath = getpath("models", name)
+        filepath = get_model_path(name)
         checkpoint = torch.load(filepath)
 
         # Update model
@@ -175,7 +175,7 @@ class ANET(nn.Module):
         Args:
             name (str): name of the model
         """
-        filepath = getpath("models", name)
+        filepath = get_model_path(name)
         print(filepath)
         torch.save(
             {

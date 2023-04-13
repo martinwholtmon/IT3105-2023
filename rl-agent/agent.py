@@ -3,6 +3,7 @@
 import uuid
 from state_manager import Env
 from policy import Policy
+from topp import TOPP
 
 
 class RLAgent:
@@ -77,4 +78,15 @@ class RLAgent:
                 self.policy.save(self.uuid, self.game_name, str(episode))
 
         # Save final model
-        self.policy.save(self.uuid, self.game_name, "final")
+        self.policy.save(self.uuid, self.game_name, str(episode))
+
+    def evaluate(self, games):
+        """This will initialize the The Tournament of Progressive Policies (TOPP):
+        Each saved model will compete in a round-robin fashion against the
+        other models in a series of games. The TOPP winner will be saved.
+
+        Args:
+            games (int): number of games in one series
+        """
+        topp = TOPP(self.uuid, self.env)
+        topp.play(games)

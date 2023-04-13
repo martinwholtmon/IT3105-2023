@@ -55,7 +55,7 @@ def main():
     # # Define the agent
     agent = RLAgent(env=env, policy=policy, episodes=5, epsilon=1, save_interval=2)
     agent.train()
-    # agent.evaluate()
+    agent.evaluate(games=25)
 
 
 if __name__ == "__main__":
