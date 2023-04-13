@@ -156,6 +156,7 @@ class ANET(nn.Module):
             name (str): name of the model
         """
         # Load checkpoint
+        print(f"Loading {filepath}")
         checkpoint = torch.load(filepath)
 
         # Update model
