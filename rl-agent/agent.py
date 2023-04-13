@@ -14,6 +14,8 @@ class RLAgent:
         episodes: int,
         epsilon: float,
         save_interval: int,
+        session_uuid: str = None,
+        episode_nr: int = 0,
     ):
         """Initialize the agent
         Args:
@@ -37,16 +39,26 @@ class RLAgent:
         self.episodes = episodes
         self.epsilon = epsilon
         self.save_interval = save_interval
-        self.uuid = str(uuid.uuid4())
+        if session_uuid is None:
+            self.session_uuid = str(uuid.uuid4())
+        else:
+            self.session_uuid = session_uuid
+        self.episode_nr = int(episode_nr)
         self.game_name = env.state.__class__.__name__
 
     def train(self):
-        """Train the agent"""
-        print(f"Training session {self.uuid}")
+        """Train the agent. In case we resume training,
+        we can set the correct episode start
 
+        Args:
+            episode_start (int, optional): Episode to start at. Defaults to 1.
+        """
+        if self.episode_nr >= self.episodes:
+            return
+
+        print(f"Training session {self.session_uuid}")
         self.policy.rbuf_clear()
-
-        for episode in range(1, self.episodes + 1):
+        for episode in range(self.episode_nr + 1, self.episodes + 1):
             state = self.env.reset()
             terminated = False
             cumulative_rewards = 0
@@ -77,10 +89,10 @@ class RLAgent:
 
             # Save
             if episode % self.save_interval == 0:
-                self.policy.save(self.uuid, self.game_name, str(episode))
+                self.policy.save(self.session_uuid, self.game_name, str(episode))
 
         # Save final model
-        self.policy.save(self.uuid, self.game_name, str(episode))
+        self.policy.save(self.session_uuid, self.game_name, str(episode))
 
     def evaluate(self, games):
         """This will initialize the The Tournament of Progressive Policies (TOPP):
@@ -90,5 +102,5 @@ class RLAgent:
         Args:
             games (int): number of games in one series
         """
-        topp = TOPP(self.uuid, self.env)
+        topp = TOPP(self.session_uuid, self.env)
         topp.play(games)

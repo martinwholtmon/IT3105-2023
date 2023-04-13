@@ -6,7 +6,7 @@ import numpy as np
 from mcts import mcts
 from state_manager import State
 from neural_net import ANET
-from helpers import get_model_path, save_config
+from helpers import build_model_path, save_config
 
 
 class Policy:
@@ -67,7 +67,7 @@ class Policy:
         else:
             return self.neural_net.predict(state)
 
-    def save(self, uuid, game_name, episode):
+    def save(self, session_uuid, game_name, episode):
         """Invoke the save function on the neural network
 
         Args:
@@ -75,11 +75,12 @@ class Policy:
             episode (str): Episode number/final state
         """
         # Save model
-        filepath = build_model_path(f"{game_name}_{episode}_{uuid}.pth")
+        filepath = build_model_path(f"{game_name}_{episode}_{session_uuid}.pth")
         self.neural_net.save(filepath)
 
         # Save config
-        save_config(uuid)
+        custom_info = {"session_uuid": session_uuid, "episode_nr": episode}
+        save_config(session_uuid, {"custom": custom_info})
 
     def _rbuf_add(self, state: State, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer
