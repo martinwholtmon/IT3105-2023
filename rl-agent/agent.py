@@ -42,6 +42,8 @@ class RLAgent:
 
     def train(self):
         """Train the agent"""
+        print(f"Training session {self.uuid}")
+
         self.policy.rbuf_clear()
 
         for episode in range(1, self.episodes + 1):
