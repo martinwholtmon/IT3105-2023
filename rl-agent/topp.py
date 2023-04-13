@@ -3,7 +3,7 @@ import random
 from dataclasses import dataclass
 from state_manager import Env
 from neural_net import ANET
-from helpers import get_model_filenames
+from helpers import get_model_filenames, load_config, load_env, load_net
 
 
 @dataclass
@@ -18,14 +18,20 @@ class Model:
 class TOPP:
     """Perform round-robin tournament between the saved neural networks"""
 
-    def __init__(self, uuid: str, env: Env) -> None:
+    def __init__(self, uuid: str, env: Env = None) -> None:
         """Initialize the TOPP
 
         Args:
             uuid (str): uuid of training session
         """
-        self.env: Env = env
-        self.models: "list[Model]" = load_models(uuid)
+        # Load the config file
+        config = load_config(uuid)
+
+        if env is None:
+            self.env = load_env(config)
+        else:
+            self.env: Env = env
+        self.models: "list[Model]" = load_models(uuid, env, config)
 
     def play(self, games: int):
         """Play the tournament
@@ -76,11 +82,6 @@ class TOPP:
                 if state.current_player == 1
                 else p2.neural_net.predict(state)
             )
-
-            # Perform action
-            # print(
-            #     f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={state.actions[action]}"
-            # )
             next_state, reward, terminated = self.env.step(action)
 
             # Update score and state
@@ -92,7 +93,7 @@ class TOPP:
         return p1 if cumulative_rewards == 1 else p2
 
 
-def load_models(uuid: str) -> "list[Model]":
+def load_models(uuid: str, env: Env, config: dict) -> "list[Model]":
     """Given a UUID, it will load all the models
 
     Args:
@@ -104,19 +105,7 @@ def load_models(uuid: str) -> "list[Model]":
     models = []
     filenames = get_model_filenames(uuid)
     for filename in filenames:
-        # TODO: Currently hardcoded, but must be loaded from file given the uuid (issue #52)
-        net = ANET(
-            input_shape=(9,),
-            output_lenght=9,
-            hidden_layers=[82, 82],
-            activation_function="relu",
-            learning_rate=0.001,
-            batch_size=32,
-            discount_factor=1,
-            gradient_steps=1,
-            max_grad_norm=1,
-            device="cpu",
-        )
+        net = load_net(env, config)
         net.load(filename, False)
         models.append(Model(filename, net))
     return models
