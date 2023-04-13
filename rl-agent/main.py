@@ -6,6 +6,7 @@ from helpers import load_config, load_env, load_net, get_latest_model_filename
 def main():
     # If we want to load old session and continue training,
     # update this variable to the session UUID
+    # TODO: Add this directly to config file
     session_uuid = None
 
     # Load config
