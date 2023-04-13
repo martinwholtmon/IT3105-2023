@@ -34,8 +34,8 @@ def get_model_filenames(uuid: str) -> list[str]:
     """
     filenames = []
     for file in Path(BASEDIR_MODELS).glob("*"):
-        if file.stem.endswith(uuid):
-            filenames.append(file.name)
+        if file.name.endswith(f"{uuid}.pth"):
+            filenames.append(file.as_posix())
     return filenames
 
 
