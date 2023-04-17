@@ -15,11 +15,8 @@ class Replay:
 
 
 class RBUF:
-    def __init__(self, replays: "list[Replay]" = None) -> None:
-        if replays is None:
-            self.replays: "list[Replay]" = []
-        else:
-            self.replays = replays
+    def __init__(self) -> None:
+        self.replays: "list[Replay]" = []
 
     def add(self, state: State, action_probabilities: np.ndarray):
         """Add a replay to the replay buffer
