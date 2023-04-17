@@ -93,6 +93,7 @@ def mcts(
     state: State,
     policy: ANET,
     simulations: int,
+    exploration_bonus: float,
     exploration_factor: float,
 ) -> tuple[any, np.ndarray]:
     """Run the MCTS algorithm with M simulations to select the best action to perform
@@ -101,7 +102,8 @@ def mcts(
         state (State): The state space
         policy (ANET): The policy used to select actions
         simulations (int): Number of simulations
-        exploration_factor (float): How explorative the MCTS is
+        exploration_bonus (float): Exploration bonus in tree policy
+        exploration_factor (float): How explorative the MCTS is during rollouts
 
     Returns:
         np.ndarray: Action probabilities -> visit count normalized
