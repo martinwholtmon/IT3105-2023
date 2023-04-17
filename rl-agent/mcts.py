@@ -127,7 +127,7 @@ def mcts(
         node, current_state = node_expansion(node, current_state)
 
         # Simulate action (expansion) and rollout
-        reward = leaf_evaluation(current_state, policy)
+        reward = leaf_evaluation(current_state, policy, exploration_factor)
 
         # Backpropagate results through tree
         backpropagation(node, reward)
@@ -188,7 +188,7 @@ def node_expansion(node: Node, state: State):
     return node, state
 
 
-def leaf_evaluation(state: State, policy: ANET) -> float:
+def leaf_evaluation(state: State, policy: ANET, exploration_factor: float) -> float:
     """Estimating the value of a leaf node in the tree by doing
     a rollout simulation using the default policy from the leaf
     node's state to a final state.
@@ -196,12 +196,19 @@ def leaf_evaluation(state: State, policy: ANET) -> float:
     Args:
         state (State): final game state
         policy (ANET): The neural network used to get the actions probability distributions
+        exploration_factor (float): The probability of selecting a random action instead of the predicted best one.
+        "Epsilon-greedy" approch
 
     Returns:
         float: The reward
     """
     while not state.is_terminated():
-        action = policy.predict(state)
+        if random.uniform(0, 1) <= exploration_factor:
+            # Explore
+            action = state.sample()
+        else:
+            # Select best action
+            action = policy.predict(state)
         state.perform_action(action)
     return state.get_reward()
 
