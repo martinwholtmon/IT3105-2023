@@ -57,7 +57,6 @@ class RLAgent:
             return
 
         print(f"Training session {self.session_uuid}")
-        self.policy.rbuf_clear()
         for episode in range(self.episode_nr + 1, self.episodes + 1):
             state = self.env.reset()
             terminated = False
