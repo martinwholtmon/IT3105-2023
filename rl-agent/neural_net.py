@@ -92,6 +92,9 @@ class ANET(nn.Module):
         # Set device
         self.to(self.device)
 
+        # Set training mode
+        self.set_training_mode(True)
+
     def predict(self, state: State) -> np.ndarray:
         """Given a state, return the action probabilities for all actions in the game
 
@@ -121,12 +124,9 @@ class ANET(nn.Module):
         return self.layers(x)
 
     def update(self):
-        """Sample the replay buffer and do updates (gradient decent)
+        """Sample the replay buffer and do updates"""
+        self.set_training_mode(True)
 
-        Args:
-            batch (list[tuple[np.ndarray, np.ndarray]]): List of replay buffers
-        """
-        # batch: list[tuple[State, np.ndarray]]
         # Get batch
         samples: "list[Replay]" = self.replays.sample(self.batch_size)
 
@@ -140,8 +140,7 @@ class ANET(nn.Module):
             input.append(transform_state(sample.state, sample.player))
 
             # Get target values
-            # TODO: Probably do some q value stuff here?
-            target.append(sample.target_value)
+            target.append(sample.target_value * self.discount_factor)
 
         # Convert to tensors
         input = torch.FloatTensor(np.array(input)).to(self.device)
@@ -181,9 +180,9 @@ class ANET(nn.Module):
             )
 
         if continue_training:
-            self.train()
+            self.set_training_mode(True)
         else:
-            self.eval()
+            self.set_training_mode(False)
 
     def save(self, filepath: str):
         """Saves the current model
@@ -208,6 +207,14 @@ class ANET(nn.Module):
             action_probabilities (np.ndarray): target values
         """
         self.replays.add(state, action_probabilities)
+
+    def set_training_mode(self, mode: bool):
+        """Set the model to either training mode or evaluation mode
+
+        Args:
+            mode (bool): If True, set it to training mode. Else set it to evaluation mode.
+        """
+        self.train(mode)
 
 
 def transform_state(state: np.ndarray, player: int) -> np.ndarray:
