@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from state_manager import State
+from rbuf import RBUF, Replay
 
 
 class ANET(nn.Module):
@@ -25,6 +26,7 @@ class ANET(nn.Module):
         gradient_steps: int = 1,
         max_grad_norm: float = 10,
         device: Union[torch.device, str] = "auto",
+        save_replays: bool = False,
     ) -> None:
         """Init the neural network.
 
@@ -38,6 +40,7 @@ class ANET(nn.Module):
             discount_factor (int, optional): Reward importance [0,1]. Defaults to 1.
             max_grad_norm (float, optional): Max value for gradient clipping. Defaults to 10.
             device (Union[torch.device, str], optional): Device the network should use. Defaults to "auto" meaning that it will use GPU if available.
+            save_replays (bool): If we want to resume training at a later date, this must be set to True. Defaults to False.
         """
         # Inherit from nn.Module
         super(ANET, self).__init__()
@@ -50,6 +53,8 @@ class ANET(nn.Module):
         self.gradient_steps = gradient_steps
         self.max_grad_norm = max_grad_norm
         self.device = get_device(device)
+        self.save_replays = save_replays
+        self.replays: RBUF = RBUF()
 
         # Add layers
         modules = []
@@ -115,23 +120,28 @@ class ANET(nn.Module):
         """
         return self.layers(x)
 
-    def update(self, batch: list[tuple[State, np.ndarray]]):
+    def update(self):
         """Sample the replay buffer and do updates (gradient decent)
 
         Args:
             batch (list[tuple[np.ndarray, np.ndarray]]): List of replay buffers
         """
-        # Get target values for samples
-        input: "list[np.ndarray]" = []
-        for entry in batch:
-            input.append(
-                transform_state(entry[0].current_state, entry[0].current_player)
-            )
+        # batch: list[tuple[State, np.ndarray]]
+        # Get batch
+        samples: "list[Replay]" = self.replays.sample(self.batch_size)
 
-        # Extract input values and taget values from batch
-        target = [
-            entry[1] for entry in batch
-        ]  # TODO: Probably do some q value stuff here?
+        # Prepare holders
+        input: "list[np.ndarray]" = []
+        target: "list[np.ndarray]" = []
+
+        # Iterate over the samples
+        for sample in samples:
+            # Get states
+            input.append(transform_state(sample.state, sample.player))
+
+            # Get target values
+            # TODO: Probably do some q value stuff here?
+            target.append(sample.target_value)
 
         # Convert to tensors
         input = torch.FloatTensor(np.array(input)).to(self.device)
@@ -149,7 +159,7 @@ class ANET(nn.Module):
         loss.backward()
         self.optimizer.step()
 
-    def load(self, filepath: str, continue_training=True):
+    def load(self, filepath: str, continue_training=False):
         """Tries to load a saved model
 
         Args:
@@ -162,6 +172,13 @@ class ANET(nn.Module):
         # Update model
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        self.replays = checkpoint["replays"]
+
+        # Handle training.
+        if continue_training is True and self.save_replays is not True:
+            raise ValueError(
+                f"You cannot continue training a model that did not save replays!"
+            )
 
         if continue_training:
             self.train()
@@ -178,9 +195,19 @@ class ANET(nn.Module):
             {
                 "model_state_dict": self.state_dict(),
                 "optimizer_state_dict": self.optimizer.state_dict(),
+                "replays": self.replays,
             },
             filepath,
         )
+
+    def add_replay(self, state: State, action_probabilities: np.ndarray):
+        """Add a replay to the replay buffer
+
+        Args:
+            state (State): Current state
+            action_probabilities (np.ndarray): target values
+        """
+        self.replays.add(state, action_probabilities)
 
 
 def transform_state(state: np.ndarray, player: int) -> np.ndarray:

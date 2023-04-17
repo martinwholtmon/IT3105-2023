@@ -2,7 +2,6 @@
 
 Note: Subject to refactor as the policy is really the weights of the deep learning module
 """
-import numpy as np
 from mcts import mcts
 from state_manager import State
 from neural_net import ANET
@@ -30,13 +29,11 @@ class Policy:
         self.M = M
         self.exploration_factor = exploration_factor
         self.exploration_fraction = exploration_fraction
-        self.rbuf: "list[tuple[State, np.ndarray]]" = []
         self.subtree = None
 
     def update(self):
         """Update the target policy"""
-        self.neural_net.update(self.rbuf)
-        self.rbuf_clear()
+        self.neural_net.update()
         self.subtree = None
 
     def select_action(self, state: State, training_mode: bool = False) -> any:
@@ -58,7 +55,9 @@ class Policy:
                 self.exploration_factor,
                 # TODO: self.exploration_fraction,
             )
-            self._rbuf_add(state, action_probabilities)
+
+            # Save replay
+            self.neural_net.add_replay(state, action_probabilities)
 
             # Set subtree
             self.subtree = subtree
@@ -81,15 +80,3 @@ class Policy:
         # Save config
         custom_info = {"session_uuid": session_uuid, "episode_nr": episode}
         save_config(session_uuid, {"custom": custom_info})
-
-    def _rbuf_add(self, state: State, action_probabilities: np.ndarray):
-        """Add a replay to the replay buffer
-        Args:
-            state (State): a game state
-            action_probabilities (np.ndarray): action probabilities
-        """
-        self.rbuf.append((state.clone(), action_probabilities))
-
-    def rbuf_clear(self):
-        """Clear the replay buffer"""
-        self.rbuf.clear()
