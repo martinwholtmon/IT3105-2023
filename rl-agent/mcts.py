@@ -39,7 +39,7 @@ class Node:
         """
         return len(self.untried_actions) == 0
 
-    def select_child(self, exploration_factor) -> Node:
+    def select_child(self, exploration_bonus) -> Node:
         """Use the tree policy the select a child node (next game state)
 
         Args:
@@ -52,7 +52,7 @@ class Node:
         if self.state.current_player == 1:  # player 1 -> Maximize
             scores = [
                 (child.value / child.num_visits if child.num_visits else 0)
-                + exploration_factor
+                + exploration_bonus
                 * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
                 for child in self.children
             ]
@@ -60,7 +60,7 @@ class Node:
         else:  # player 2 -> Minimize
             scores = [
                 (child.value / child.num_visits if child.num_visits else 0)
-                - exploration_factor
+                - exploration_bonus
                 * np.sqrt(np.log(self.num_visits) / (1 + child.num_visits))
                 for child in self.children
             ]
@@ -121,7 +121,7 @@ def mcts(
         current_state = state.clone()
 
         # Select action
-        node, current_state = tree_search(node, current_state, exploration_factor)
+        node, current_state = tree_search(node, current_state, exploration_bonus)
 
         # Expansion
         node, current_state = node_expansion(node, current_state)
@@ -152,20 +152,20 @@ def mcts(
     return action, action_probabilities, subtree
 
 
-def tree_search(node: Node, state: State, exploration_factor: float):
+def tree_search(node: Node, state: State, exploration_bonus: float):
     """Traversing the tree from the root to a leaf node by using the tree policy
 
     Args:
         node (Node): Node in the MCTS tree
         state (State): Current game state
-        exploration_factor (float): How explorative the selection will be
+        exploration_bonus (float): How explorative the selection will be
 
     Returns:
         tuple[Node, State]: leaf node, state that has action along the path applied
     """
     # Select best child and perform the action to current state
     while not node.is_leaf() and node.fully_expanded():
-        node = node.select_child(exploration_factor)
+        node = node.select_child(exploration_bonus)
         state.perform_action(node.action)
     return node, state
 
