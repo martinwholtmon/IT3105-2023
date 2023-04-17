@@ -21,6 +21,7 @@ class State(ABC):
         self.current_state: np.ndarray = None
         self.actions: "list[any]" = []
         self.legal_actions: np.ndarray = None
+        self.terminated = False
 
     @abstractmethod
     def perform_action(self, action):
@@ -86,7 +87,7 @@ class State(ABC):
         Returns:
             float: the reward
         """
-        if self.is_terminated():
+        if self.terminated:
             if self.current_player == 1:
                 return 1
             return -1
@@ -94,7 +95,7 @@ class State(ABC):
 
     def _next_player(self):
         """Change the current_player in the state to the next player"""
-        if not self.is_terminated():
+        if not self.terminated:
             self.current_player = (self.current_player % self.n_players) + 1
 
 

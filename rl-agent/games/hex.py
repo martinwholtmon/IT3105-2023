@@ -7,13 +7,25 @@ from state_manager import State
 
 
 class _Cell:
-    def __init__(self, pos: int, owner: int = 0, neighbors: list[_Cell] = None) -> None:
+    def __init__(
+        self, pos: int, owner: int = 0, neighbors: list[tuple[int, int]] = None
+    ) -> None:
         self.pos = pos
         self.owner = owner
         if neighbors is None:
-            self.neighbors: list[_Cell] = []
+            self.neighbors: list[tuple[int, int]] = []
         else:
             self.neighbors = neighbors
+
+    def clone(self) -> _Cell:
+        """Clone a cell
+
+        Returns:
+            _Cell: Cloned cell
+        """
+        new_cell = copy.copy(self)
+        new_cell.neighbors = self.neighbors.copy()
+        return new_cell
 
 
 class Hex(State):
@@ -58,6 +70,9 @@ class Hex(State):
         # Update simple board
         self.current_state[cell.pos] = self.current_player
 
+        # check if terminated
+        self.terminated = self.is_terminated()
+
         # Update legal actions
         self._update_legal_actions(action)
         self._next_player()
@@ -75,7 +90,11 @@ class Hex(State):
         for point in self.game_state[-1]:
             if point.owner == 1:
                 if complete_path(
-                    point, player=1, goal_pos=self.player_one_goal, visited=[]
+                    self.game_state,
+                    point,
+                    player=1,
+                    goal_pos=self.player_one_goal,
+                    visited=set(),
                 ):
                     return True
 
@@ -83,7 +102,11 @@ class Hex(State):
         for point in [row[-1] for row in self.game_state]:
             if point.owner == 2:
                 if complete_path(
-                    point, player=2, goal_pos=self.player_two_goal, visited=[]
+                    self.game_state,
+                    point,
+                    player=2,
+                    goal_pos=self.player_two_goal,
+                    visited=set(),
                 ):
                     return True
         return False
@@ -93,9 +116,15 @@ class Hex(State):
         # Create shallow copy
         new_state = copy.copy(self)
 
+        # Create the game space
+        new_state.game_state = []
+        for y in range(self.size):
+            new_state.game_state.append([])
+            for cell in self.game_state[y]:
+                new_state.game_state[y].append(cell.clone())
+
         # Update attributes that needs dereferencing
         # (int are immutable, lists/numpy objects are not)
-        new_state.game_state = copy.deepcopy(self.game_state)
         new_state.current_state = self.current_state.copy()
         new_state.legal_actions = self.legal_actions.copy()
         return new_state
@@ -135,7 +164,7 @@ class Hex(State):
                     x=x, y=y, max=self.size - 1
                 )
                 for px, py in neighboring_points:
-                    cell.neighbors.append(self.game_state[py][px])
+                    cell.neighbors.append((py, px))
 
     def _generate_actions(self) -> list[any]:
         """Generates the legal actions for the initial state"""
@@ -188,13 +217,18 @@ def find_neighboring_points(x: int, y: int, max: int) -> list[tuple[int, int]]:
 
 
 def complete_path(
-    cell: _Cell, player: int, goal_pos: list[int], visited: list[_Cell]
+    game_state: list[list[_Cell]],
+    cell: _Cell,
+    player: int,
+    goal_pos: list[int],
+    visited: set[int],
 ) -> bool:
     """This method paths towards the start position to see if we have a complete path.
     To make sure we are not looping, we cannot visit a node/cell twice
 
     Args:
-        cell (_Cell): _description_
+        game_state (list[list[_Cell]]): The current game state
+        cell (_Cell): the current cell
         player (int): Player id.
             Player 1: Top -> bottom
             Player 2: Left -> right
@@ -208,9 +242,11 @@ def complete_path(
     # Explore
     visted_list = visited.copy()
     for neighbor in cell.neighbors:
-        if neighbor not in visted_list and neighbor.owner == player:
-            visted_list.append(neighbor)
-            if complete_path(neighbor, player, goal_pos, visted_list):
+        py, px = neighbor
+        cell = game_state[py][px]
+        if cell.pos not in visted_list and cell.owner == player:
+            visted_list.add(cell.pos)
+            if complete_path(game_state, cell, player, goal_pos, visted_list):
                 return True
 
     # Did not find path
