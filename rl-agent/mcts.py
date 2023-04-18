@@ -1,6 +1,7 @@
 """This module will contain the MCTS algorithm"""
 from __future__ import annotations
 import random
+import time
 import numpy as np
 from state_manager import State
 from neural_net import ANET
@@ -95,6 +96,7 @@ def mcts(
     simulations: int,
     exploration_bonus: float,
     exploration_factor: float,
+    timeout: float,
 ) -> tuple[any, np.ndarray]:
     """Run the MCTS algorithm with M simulations to select the best action to perform
 
@@ -104,6 +106,7 @@ def mcts(
         simulations (int): Number of simulations
         exploration_bonus (float): Exploration bonus in tree policy
         exploration_factor (float): How explorative the MCTS is during rollouts
+        timeout (float): How long the MCTS should run before returning a result
 
     Returns:
         np.ndarray: Action probabilities -> visit count normalized
@@ -116,7 +119,12 @@ def mcts(
         root = subtree
 
     # Run MCTS
+    start_time = time.perf_counter()
     for _ in range(simulations):
+        # Reach time limit, stop mcts
+        if (time.perf_counter() - start_time) > timeout:
+            break
+
         node = root
         current_state = state.clone()
 

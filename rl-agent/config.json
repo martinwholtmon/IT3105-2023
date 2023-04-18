@@ -21,7 +21,8 @@
         "M": 500,
         "exploration_bonus": 1,
         "exploration_factor": 0.01,
-        "exploration_fraction": 1
+        "exploration_fraction": 1,
+        "timeout": 3
     },
     "agent_params": {
         "episodes": 50,

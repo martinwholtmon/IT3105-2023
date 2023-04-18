@@ -16,6 +16,7 @@ class Policy:
         exploration_bonus: float = 1,
         exploration_factor: float = 0.01,
         exploration_fraction: float = 0,
+        timeout: float = 1,
     ) -> None:
         """Initiate the MCTS policy
 
@@ -25,6 +26,7 @@ class Policy:
             exploration_bonus (float, optional): Exploration bonus in tree policy. Defaults to 1.
             exploration_factor (float, optional): How explorative the MCTS is during rollout. Defaults to 0.01.
             exploration_fraction (float, optional): fraction which the exploration rate is reduced each episode. Defaults to 0.
+            timeout (float, optional): How many seconds the MCTS should run for before doing an early return. Defaults to 1.
         """
         # Set params
         self.neural_net: ANET = neural_net
@@ -32,6 +34,7 @@ class Policy:
         self.exploration_bonus = exploration_bonus
         self.exploration_factor = exploration_factor
         self.exploration_fraction = exploration_fraction
+        self.timeout = timeout
         self.subtree = None
 
     def update(self):
@@ -61,6 +64,7 @@ class Policy:
                 self.M,
                 self.exploration_bonus,
                 self.exploration_factor,
+                self.timeout
                 # TODO: self.exploration_fraction,
             )
 
