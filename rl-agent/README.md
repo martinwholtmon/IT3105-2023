@@ -101,22 +101,22 @@ Clean separation between key componenets (own classes):
 - Tournament of Progressive Policies (TOPP)
 
 Handle variations:
-- [ ] Hex board with size of `k`, k x k, `3 <= k <= 10` -> `k: [3,10]`
-- [ ] Standard MCTS paraments, nr_epsisodes, nr_searches per actual move...
+- [x] Hex board with size of `k`, k x k, `3 <= k <= 10` -> `k: [3,10]`
+- [x] Standard MCTS paraments, nr_epsisodes, nr_searches per actual move...
 - [ ] ANET: learning rate, number of hidden layers, neurons per layer, activations functions: linear, sigmoid, yanh, **RELU**
 - [ ] Optimizer in ANET, options: Adagrad, Stochastic Gradient Descent (SGD), RMSProp, and Adam.
-- [ ] Number (`M`) of ANET's to be cached in preparation for a TOPP
-- [ ] Number of games `G` to be played between any two ANET-based agents during the round-robin play of the TOPP. 
+- [x] Number (`M`) of ANET's to be cached in preparation for a TOPP
+- [x] Number of games `G` to be played between any two ANET-based agents during the round-robin play of the TOPP. 
 
 **A separate configuration file (e.g. .env) provides an easy and efficient solution to this problem and is highly recommended.**
 # Requirements
-- [ ] Your system must include `M` (simulations fo MCTS followed by a rollout) as a user-specifiable parameter (Can be dynamic, increase as you go). Default: 500
-- [ ] Implemented a game manager
-- [ ] Implemented MCTS module
-- [ ] Implemented RL module
-- [ ] Implemented a neural-net package (tensorflow/PyTorch)
-- [ ] Implemented TOPP module
-- [ ] Handle variations in configuration
+- [x] Your system must include `M` (simulations fo MCTS followed by a rollout) as a user-specifiable parameter (Can be dynamic, increase as you go). Default: 500
+- [x] Implemented a game manager
+- [x] Implemented MCTS module
+- [x] Implemented RL module
+- [x] Implemented a neural-net package (tensorflow/PyTorch)
+- [x] Implemented TOPP module
+- [x] Handle variations in configuration
 - [ ] Play in the Online Hex Tournamenet (OHT)
 
 # Deliverables
