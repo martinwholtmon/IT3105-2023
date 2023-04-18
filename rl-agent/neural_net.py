@@ -23,7 +23,7 @@ class ANET(nn.Module):
         learning_rate: float = 0.001,
         batch_size: int = 32,
         discount_factor: int = 1,  # assumed to be 1
-        gradient_steps: int = 1,
+        gradient_steps: int = 10,
         max_grad_norm: float = 10,
         device: Union[torch.device, str] = "auto",
         save_replays: bool = False,
@@ -38,6 +38,7 @@ class ANET(nn.Module):
             learning_rate (float, optional): The rate of which the network will learn (0,1]. Defaults to 0.001.
             batch_size (int, optional): Minibatch size for each gradient update. Defaults to 32.
             discount_factor (int, optional): Reward importance [0,1]. Defaults to 1.
+            gradient_steps (int, optional): How many gradient steps we do per update/training. Defaults to 10.
             max_grad_norm (float, optional): Max value for gradient clipping. Defaults to 10.
             device (Union[torch.device, str], optional): Device the network should use. Defaults to "auto" meaning that it will use GPU if available.
             save_replays (bool): If we want to resume training at a later date, this must be set to True. Defaults to False.
@@ -123,40 +124,48 @@ class ANET(nn.Module):
         """
         return self.layers(x)
 
-    def update(self):
+    def update(self, gradient_steps=None):
+        # Set gradient steps
+        if gradient_steps is None:
+            gradient_steps = self.gradient_steps
+
         """Sample the replay buffer and do updates"""
         self.set_training_mode(True)
 
-        # Get batch
-        samples: "list[Replay]" = self.replays.sample(self.batch_size)
+        # Train
+        losses = []
+        for _ in range(gradient_steps):
+            # Get batch
+            samples: "list[Replay]" = self.replays.sample(self.batch_size)
 
-        # Prepare holders
-        input: "list[np.ndarray]" = []
-        target: "list[np.ndarray]" = []
+            # Prepare holders
+            input: "list[np.ndarray]" = []
+            target: "list[np.ndarray]" = []
 
-        # Iterate over the samples
-        for sample in samples:
-            # Get states
-            input.append(transform_state(sample.state, sample.player))
+            # Iterate over the samples
+            for sample in samples:
+                # Get states
+                input.append(transform_state(sample.state, sample.player))
 
-            # Get target values
-            target.append(sample.target_value * self.discount_factor)
+                # Get target values
+                target.append(sample.target_value * self.discount_factor)
 
-        # Convert to tensors
-        input = torch.FloatTensor(np.array(input)).to(self.device)
-        target = torch.FloatTensor(np.array(target)).to(self.device)
+            # Convert to tensors
+            input = torch.FloatTensor(np.array(input)).to(self.device)
+            target = torch.FloatTensor(np.array(target)).to(self.device)
 
-        # Do forward pass
-        input = self.forward(input)
+            # Do forward pass
+            input = self.forward(input)
 
-        # Calc loss
-        loss = self.loss_function(input, target)
-        print(f"loss: {loss.item()}")
+            # Calc loss
+            loss = self.loss_function(input, target)
+            losses.append(loss.item())
 
-        # Optimize
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+            # Optimize
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+        print(f"train/loss: {np.mean(losses)}")
 
     def load(self, filepath: str, continue_training=False):
         """Tries to load a saved model

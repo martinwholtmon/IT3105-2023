@@ -37,9 +37,9 @@ class Policy:
         self.timeout = timeout
         self.subtree = None
 
-    def update(self):
+    def update(self, episode_length: int):
         """Update the target policy"""
-        self.neural_net.update()
+        self.neural_net.update(episode_length)
         self.subtree = None
 
     def select_action(self, state: State, training_mode: bool = False) -> any:
