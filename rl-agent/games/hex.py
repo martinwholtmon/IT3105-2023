@@ -131,33 +131,17 @@ class Hex(State):
 
     def render(self):
         """Render the game of Hex as a Diamond"""
-        # Top rectangle 0 middle
+        # Top rectangle + middle
         for i in range(self.size):
-            # Get values
-            vals = []
-            y = i
-            x = 0
-
-            for _ in range(i + 1):
-                vals.append(str(self.game_state[y][x].owner))
-                # update
-                y -= 1
-                x += 1
-
+            vals = [str(self.game_state[i - j][j].owner) for j in range(i + 1)]
             print(" " * (self.size - i - 1) + " ".join(vals))
 
         # Bottom rectangle
-        for i in reversed(range(self.size - 1)):
-            # get values
-            vals = []
-            y = self.size - 1
-            x = self.size - 1 - i
-
-            for _ in range(i + 1):
-                vals.append(str(self.game_state[y][x].owner))
-                # update
-                y -= 1
-                x += 1
+        for i in range(self.size - 2, -1, -1):
+            vals = [
+                str(self.game_state[self.size - 1 - j][self.size - 1 - i + j].owner)
+                for j in range(i + 1)
+            ]
             print(" " * (self.size - i - 1) + " ".join(vals))
 
         # print()
