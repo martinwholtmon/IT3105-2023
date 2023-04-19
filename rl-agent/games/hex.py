@@ -129,6 +129,52 @@ class Hex(State):
         new_state.legal_actions = self.legal_actions.copy()
         return new_state
 
+    def render(self):
+        """Render the game of Hex as a Diamond"""
+        # for i in range(self.size):
+        #     print(
+        #         " " * (self.size - i - 1)
+        #         + " ".join(str(cell.owner) for cell in self.game_state[i][: i + 1])
+        #     )
+        # for i in range(self.size - 2, -1, -1):
+        #     print(
+        #         " " * (self.size - i - 1)
+        #         + " ".join(str(cell.owner) for cell in self.game_state[i][: i + 1])
+        #     )
+
+        # Top rectangle 0 middle
+        for i in range(self.size):
+            # Get values
+            vals = []
+            y = i
+            x = 0
+
+            for _ in range(i + 1):
+                vals.append(str(self.game_state[y][x].owner))
+                # update
+                y -= 1
+                x += 1
+
+            print(" " * (self.size - i - 1) + " ".join(vals))
+
+        # Bottom rectangle
+        for i in reversed(range(self.size - 1)):
+            # get values
+            vals = []
+            y = self.size - 1
+            x = self.size - 1 - i
+
+            for _ in range(i + 1):
+                vals.append(str(self.game_state[y][x].owner))
+                # update
+                y -= 1
+                x += 1
+            print(" " * (self.size - i - 1) + " ".join(vals))
+
+        # print()
+        # for y in self.game_state:
+        #     print(" ".join(str(c.owner) for c in y))
+
     def _create_init_state(self):
         """Creates the initial state.
 

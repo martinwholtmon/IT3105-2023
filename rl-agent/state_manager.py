@@ -54,6 +54,10 @@ class State(ABC):
         """Clone/dereference the game state"""
 
     @abstractmethod
+    def render(self):
+        """Render the game to console"""
+
+    @abstractmethod
     def _create_init_state(self):
         """Creates the initial state."""
 

@@ -71,6 +71,9 @@ class RLAgent:
                 episode_length += 1
                 state = next_state
 
+                # Render
+                next_state.render()
+
             # Episode is done, update
             self.policy.update(episode_length)
             print(
