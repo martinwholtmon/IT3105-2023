@@ -18,14 +18,15 @@
         "save_replays": true
     },
     "policy_params": {
-        "M": 100,
-        "exploration_factor": 1,
-        "exploration_fraction": 1
+        "M": 500,
+        "exploration_bonus": 1,
+        "exploration_factor": 0.01,
+        "exploration_fraction": 1,
+        "timeout": 3
     },
     "agent_params": {
-        "episodes": 5,
-        "epsilon": 1,
-        "save_interval": 2
+        "episodes": 50,
+        "save_interval": 10
     },
     "topp_params": {
         "games": 25

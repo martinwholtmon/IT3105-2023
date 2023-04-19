@@ -48,7 +48,16 @@ def get_latest_model_filename(uuid: str) -> str:
     Returns:
         str: path to saved model
     """
-    return get_model_filenames(uuid)[-1]
+    model_file_names = get_model_filenames(uuid)
+
+    best_model = None
+    best_model_nr = 0
+    for model in model_file_names:
+        model_nr = get_model_number(model)
+        if model_nr > best_model_nr:
+            best_model = model
+            best_model_nr = model_nr
+    return best_model
 
 
 def save_config(uuid: str, custom_info: dict = None):
@@ -147,3 +156,16 @@ def load_net(env: Env, config: dict) -> ANET:
         output_lenght=action_shape,
         **config["neural_network_params"],
     )
+
+
+def get_model_number(path: str) -> int:
+    """Given a path to a model, return a cleaned model name without uuid etc.
+
+    Args:
+        path (str): path to model
+
+    Returns:
+        int: model number
+    """
+    path = Path(path).name.split("_")
+    return int(path[1])

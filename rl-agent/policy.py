@@ -13,27 +13,33 @@ class Policy:
         self,
         neural_net: ANET,
         M: int = 100,
-        exploration_factor: float = 1,
+        exploration_bonus: float = 1,
+        exploration_factor: float = 0.01,
         exploration_fraction: float = 0,
+        timeout: float = 1,
     ) -> None:
         """Initiate the MCTS policy
 
         Args:
             neural_net (ANET): the neural network to train and use for prediction
             M (int): Simulations of MCTS followed by a rollout. Defaults to 100
-            exploration_factor (float, optional): How explorative the MCTS is. Defaults to 1.
+            exploration_bonus (float, optional): Exploration bonus in tree policy. Defaults to 1.
+            exploration_factor (float, optional): How explorative the MCTS is during rollout. Defaults to 0.01.
             exploration_fraction (float, optional): fraction which the exploration rate is reduced each episode. Defaults to 0.
+            timeout (float, optional): How many seconds the MCTS should run for before doing an early return. Defaults to 1.
         """
         # Set params
         self.neural_net: ANET = neural_net
         self.M = M
+        self.exploration_bonus = exploration_bonus
         self.exploration_factor = exploration_factor
         self.exploration_fraction = exploration_fraction
+        self.timeout = timeout
         self.subtree = None
 
-    def update(self):
+    def update(self, episode_length: int):
         """Update the target policy"""
-        self.neural_net.update()
+        self.neural_net.update(episode_length)
         self.subtree = None
 
     def select_action(self, state: State, training_mode: bool = False) -> any:
@@ -47,12 +53,18 @@ class Policy:
             any: Action to perform
         """
         if training_mode:
+            # Adjust exploration_factor using exploration_fraction
+            # TODO
+
+            # Run MCTS
             action, action_probabilities, subtree = mcts(
                 self.subtree,
                 state,
                 self.neural_net,
                 self.M,
+                self.exploration_bonus,
                 self.exploration_factor,
+                self.timeout
                 # TODO: self.exploration_fraction,
             )
 

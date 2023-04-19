@@ -3,7 +3,13 @@ import random
 from dataclasses import dataclass
 from state_manager import Env
 from neural_net import ANET
-from helpers import get_model_filenames, load_config, load_env, load_net
+from helpers import (
+    get_model_filenames,
+    load_config,
+    load_env,
+    load_net,
+    get_model_number,
+)
 
 
 @dataclass
@@ -11,6 +17,7 @@ class Model:
     """A model/ANET with current score etc"""
 
     model_name: str
+    model_pah: str
     neural_net: ANET
     wins: int = 0
 
@@ -107,5 +114,5 @@ def load_models(uuid: str, env: Env, config: dict) -> "list[Model]":
     for filename in filenames:
         net = load_net(env, config)
         net.load(filename, False)
-        models.append(Model(filename, net))
+        models.append(Model(get_model_number(filename), filename, net))
     return models

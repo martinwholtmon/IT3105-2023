@@ -12,7 +12,6 @@ class RLAgent:
         env: Env,
         policy: Policy,
         episodes: int,
-        epsilon: float,
         save_interval: int,
         session_uuid: str = None,
         episode_nr: int = 0,
@@ -22,22 +21,16 @@ class RLAgent:
             env (Env): Gym environment
             policy (Policy): The RL policy
             episodes (int): Nr. of episodes/games to run
-            epsilon (float): Exploration factor [0,1] Prevent overfitting
             save_interval (int): interval to save model
         """
         # Check parameters
         if episodes < 1:
             raise ValueError("You must run at least one episode")
-        if epsilon < 0 or epsilon > 1:
-            raise ValueError(
-                "Epsilon (exploration factor) must be in the interval [0,1]"
-            )
 
         # Set parameters
         self.env = env
         self.policy = policy
         self.episodes = episodes
-        self.epsilon = epsilon
         self.save_interval = save_interval
         if session_uuid is None:
             self.session_uuid = str(uuid.uuid4())
@@ -78,10 +71,8 @@ class RLAgent:
                 episode_length += 1
                 state = next_state
 
-                # TODO: (opt) Adjusting epsilon: start high -> reduce
-
             # Episode is done, update
-            self.policy.update()
+            self.policy.update(episode_length)
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
             )

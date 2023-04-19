@@ -23,7 +23,7 @@ class ANET(nn.Module):
         learning_rate: float = 0.001,
         batch_size: int = 32,
         discount_factor: int = 1,  # assumed to be 1
-        gradient_steps: int = 1,
+        gradient_steps: int = 10,
         max_grad_norm: float = 10,
         device: Union[torch.device, str] = "auto",
         save_replays: bool = False,
@@ -38,6 +38,7 @@ class ANET(nn.Module):
             learning_rate (float, optional): The rate of which the network will learn (0,1]. Defaults to 0.001.
             batch_size (int, optional): Minibatch size for each gradient update. Defaults to 32.
             discount_factor (int, optional): Reward importance [0,1]. Defaults to 1.
+            gradient_steps (int, optional): How many gradient steps we do per update/training. Defaults to 10.
             max_grad_norm (float, optional): Max value for gradient clipping. Defaults to 10.
             device (Union[torch.device, str], optional): Device the network should use. Defaults to "auto" meaning that it will use GPU if available.
             save_replays (bool): If we want to resume training at a later date, this must be set to True. Defaults to False.
@@ -92,6 +93,9 @@ class ANET(nn.Module):
         # Set device
         self.to(self.device)
 
+        # Set training mode
+        self.set_training_mode(True)
+
     def predict(self, state: State) -> np.ndarray:
         """Given a state, return the action probabilities for all actions in the game
 
@@ -120,44 +124,48 @@ class ANET(nn.Module):
         """
         return self.layers(x)
 
-    def update(self):
-        """Sample the replay buffer and do updates (gradient decent)
+    def update(self, gradient_steps=None):
+        # Set gradient steps
+        if gradient_steps is None:
+            gradient_steps = self.gradient_steps
 
-        Args:
-            batch (list[tuple[np.ndarray, np.ndarray]]): List of replay buffers
-        """
-        # batch: list[tuple[State, np.ndarray]]
-        # Get batch
-        samples: "list[Replay]" = self.replays.sample(self.batch_size)
+        """Sample the replay buffer and do updates"""
+        self.set_training_mode(True)
 
-        # Prepare holders
-        input: "list[np.ndarray]" = []
-        target: "list[np.ndarray]" = []
+        # Train
+        losses = []
+        for _ in range(gradient_steps):
+            # Get batch
+            samples: "list[Replay]" = self.replays.sample(self.batch_size)
 
-        # Iterate over the samples
-        for sample in samples:
-            # Get states
-            input.append(transform_state(sample.state, sample.player))
+            # Prepare holders
+            input: "list[np.ndarray]" = []
+            target: "list[np.ndarray]" = []
 
-            # Get target values
-            # TODO: Probably do some q value stuff here?
-            target.append(sample.target_value)
+            # Iterate over the samples
+            for sample in samples:
+                # Get states
+                input.append(transform_state(sample.state, sample.player))
 
-        # Convert to tensors
-        input = torch.FloatTensor(np.array(input)).to(self.device)
-        target = torch.FloatTensor(np.array(target)).to(self.device)
+                # Get target values
+                target.append(sample.target_value * self.discount_factor)
 
-        # Do forward pass
-        input = self.forward(input)
+            # Convert to tensors
+            input = torch.FloatTensor(np.array(input)).to(self.device)
+            target = torch.FloatTensor(np.array(target)).to(self.device)
 
-        # Calc loss
-        loss = self.loss_function(input, target)
-        print(f"loss: {loss.item()}")
+            # Do forward pass
+            input = self.forward(input)
 
-        # Optimize
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+            # Calc loss
+            loss = self.loss_function(input, target)
+            losses.append(loss.item())
+
+            # Optimize
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+        print(f"train/loss: {np.mean(losses)}")
 
     def load(self, filepath: str, continue_training=False):
         """Tries to load a saved model
@@ -181,9 +189,9 @@ class ANET(nn.Module):
             )
 
         if continue_training:
-            self.train()
+            self.set_training_mode(True)
         else:
-            self.eval()
+            self.set_training_mode(False)
 
     def save(self, filepath: str):
         """Saves the current model
@@ -208,6 +216,14 @@ class ANET(nn.Module):
             action_probabilities (np.ndarray): target values
         """
         self.replays.add(state, action_probabilities)
+
+    def set_training_mode(self, mode: bool):
+        """Set the model to either training mode or evaluation mode
+
+        Args:
+            mode (bool): If True, set it to training mode. Else set it to evaluation mode.
+        """
+        self.train(mode)
 
 
 def transform_state(state: np.ndarray, player: int) -> np.ndarray:
