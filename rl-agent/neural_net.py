@@ -79,8 +79,8 @@ class ANET(nn.Module):
 
         # output layer
         modules.append(nn.Linear(hidden_layers[-1], output_lenght))
-        # modules.append(nn.Softmax(dim=0)) # lecture notes? I might have misunderstood
-        modules.append(nn.Sigmoid())
+        modules.append(nn.Softmax(dim=0))  # lecture notes? I might have misunderstood
+        # modules.append(nn.Sigmoid())
 
         # Define the model
         self.layers = nn.Sequential(*modules)
