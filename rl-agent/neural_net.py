@@ -131,11 +131,16 @@ class ANET(nn.Module):
         return self.layers(x)
 
     def update(self, gradient_steps=None):
+        """Sample the replay buffer and update the network
+
+        Args:
+            gradient_steps (int, optional): Gradient steps. Defaults to None.
+        """
         # Set gradient steps
         if gradient_steps is None:
             gradient_steps = self.gradient_steps
 
-        """Sample the replay buffer and do updates"""
+        # Get samples
         self.set_training_mode(True)
 
         # Train
@@ -170,6 +175,8 @@ class ANET(nn.Module):
             # Optimize
             self.optimizer.zero_grad()
             loss.backward()
+            # Clip gradient norm
+            # nn.utils.clip_grad_norm_(self.parameters(), self.max_grad_norm)
             self.optimizer.step()
         print(f"train/loss: {np.mean(losses)}")
 
