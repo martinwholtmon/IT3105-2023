@@ -51,8 +51,8 @@ class Hex(State):
         super().__init__()
         self.game_state: list[list[_Cell]] = []
         self.size = size
-        self.player_one_goal = list(range(self.size))
-        self.player_two_goal = [i * self.size for i in range(self.size)]
+        self.player_one_goal = [i * self.size for i in range(self.size)]
+        self.player_two_goal = list(range(self.size))
 
         # Update state and action space
         self._create_init_state()
@@ -87,7 +87,7 @@ class Hex(State):
             bool: Game is finished
         """
         # Check states for p1 (top -> bottom)
-        for point in self.game_state[-1]:
+        for point in [row[-1] for row in self.game_state]:
             if point.owner == 1:
                 if complete_path(
                     self.game_state,
@@ -99,7 +99,7 @@ class Hex(State):
                     return True
 
         # Check states for p2 (left -> right)
-        for point in [row[-1] for row in self.game_state]:
+        for point in self.game_state[-1]:
             if point.owner == 2:
                 if complete_path(
                     self.game_state,
@@ -128,6 +128,25 @@ class Hex(State):
         new_state.current_state = self.current_state.copy()
         new_state.legal_actions = self.legal_actions.copy()
         return new_state
+
+    def render(self):
+        """Render the game of Hex as a Diamond"""
+        for y in self.game_state:
+            print(" ".join(str(c.owner) for c in y))
+        print()
+
+        # Top rectangle + middle
+        for i in range(self.size):
+            vals = [str(self.game_state[i - j][j].owner) for j in range(i + 1)]
+            print(" " * (self.size - i - 1) + " ".join(vals))
+
+        # Bottom rectangle
+        for i in range(self.size - 2, -1, -1):
+            vals = [
+                str(self.game_state[self.size - 1 - j][self.size - 1 - i + j].owner)
+                for j in range(i + 1)
+            ]
+            print(" " * (self.size - i - 1) + " ".join(vals))
 
     def _create_init_state(self):
         """Creates the initial state.
@@ -230,8 +249,8 @@ def complete_path(
         game_state (list[list[_Cell]]): The current game state
         cell (_Cell): the current cell
         player (int): Player id.
-            Player 1: Top -> bottom
-            Player 2: Left -> right
+            Player 1: Left -> right
+            Player 2: Top -> bottom
     Returns:
         bool: Has complete path
     """

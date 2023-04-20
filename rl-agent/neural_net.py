@@ -3,6 +3,7 @@
 This network is always in the perspective of player 1, 
 meaning that for player 2 we must minimize instead of maximize"""
 from typing import Union
+import copy
 import numpy as np
 import torch
 import torch.nn as nn
@@ -23,7 +24,7 @@ class ANET(nn.Module):
         learning_rate: float = 0.001,
         batch_size: int = 32,
         discount_factor: int = 1,  # assumed to be 1
-        gradient_steps: int = 10,
+        gradient_steps: int = 1,
         max_grad_norm: float = 10,
         device: Union[torch.device, str] = "auto",
         save_replays: bool = False,
@@ -38,7 +39,7 @@ class ANET(nn.Module):
             learning_rate (float, optional): The rate of which the network will learn (0,1]. Defaults to 0.001.
             batch_size (int, optional): Minibatch size for each gradient update. Defaults to 32.
             discount_factor (int, optional): Reward importance [0,1]. Defaults to 1.
-            gradient_steps (int, optional): How many gradient steps we do per update/training. Defaults to 10.
+            gradient_steps (int, optional): How many gradient steps we do per update/training. Defaults to 1.
             max_grad_norm (float, optional): Max value for gradient clipping. Defaults to 10.
             device (Union[torch.device, str], optional): Device the network should use. Defaults to "auto" meaning that it will use GPU if available.
             save_replays (bool): If we want to resume training at a later date, this must be set to True. Defaults to False.
@@ -47,7 +48,6 @@ class ANET(nn.Module):
         super(ANET, self).__init__()
 
         # Set params
-        self.activation_function = set_activation_class(activation_function)
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.discount_factor = discount_factor
@@ -64,19 +64,20 @@ class ANET(nn.Module):
         modules.append(nn.Linear(np.multiply.reduce(input_shape) + 1, hidden_layers[0]))
 
         # hidden layers
+        activation_function = set_activation_class(activation_function)
         if len(hidden_layers) == 1:
             modules.append(nn.Linear(hidden_layers[0], hidden_layers[0]))
-            if self.activation_function is not None:
-                modules.append(self.activation_function)
+            if activation_function is not None:
+                modules.append(activation_function)
         else:
             for i, j in zip(hidden_layers, hidden_layers[1:]):
                 modules.append(nn.Linear(i, j))
-                if self.activation_function is not None:
-                    modules.append(self.activation_function)
+                if activation_function is not None:
+                    modules.append(activation_function)
 
         # output layer
         modules.append(nn.Linear(hidden_layers[-1], output_lenght))
-        modules.append(nn.Softmax())
+        modules.append(nn.Softmax(dim=0))
 
         # Define the model
         self.layers = nn.Sequential(*modules)
@@ -180,7 +181,7 @@ class ANET(nn.Module):
         # Update model
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        self.replays = checkpoint["replays"]
+        self.replays: RBUF = checkpoint["replays"]
 
         # Handle training.
         if continue_training is True and self.save_replays is not True:
@@ -201,9 +202,9 @@ class ANET(nn.Module):
         """
         torch.save(
             {
-                "model_state_dict": self.state_dict(),
-                "optimizer_state_dict": self.optimizer.state_dict(),
-                "replays": self.replays,
+                "model_state_dict": copy.deepcopy(self.state_dict()),
+                "optimizer_state_dict": copy.deepcopy(self.optimizer.state_dict()),
+                "replays": copy.deepcopy(self.replays),
             },
             filepath,
         )
