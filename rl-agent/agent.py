@@ -3,7 +3,6 @@
 import uuid
 from state_manager import Env
 from policy import Policy
-from topp import TOPP
 
 
 class RLAgent:
@@ -76,7 +75,7 @@ class RLAgent:
                 state = next_state
 
             # Episode is done, update
-            self.policy.update(episode_length)
+            self.policy.update()
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
             )
