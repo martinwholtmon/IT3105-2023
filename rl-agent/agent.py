@@ -75,10 +75,10 @@ class RLAgent:
                 state = next_state
 
             # Episode is done, update
-            self.policy.update()
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
             )
+            self.policy.update()
             print()
 
             # Save
