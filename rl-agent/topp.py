@@ -38,9 +38,9 @@ class TOPP:
             self.env = load_env(config)
         else:
             self.env: Env = env
-        self.models: "list[Model]" = load_models(uuid, env, config)
+        self.models: "list[Model]" = load_models(uuid, self.env, config)
 
-    def play(self, games: int):
+    def play(self, games: int, render: bool):
         """Play the tournament
 
         Args:
@@ -53,17 +53,19 @@ class TOPP:
                 f"Series of games between {model1.model_name} and {model2.model_name}"
             )
             for game in range(games):
-                winning_model = self._execute_game(model1, model2)
+                winning_model = self._execute_game(model1, model2, render)
 
                 winning_model.wins += 1
-                print(
-                    f"Game {game}: {winning_model.model_name} won, score={winning_model.wins}"
-                )
+                # print(
+                #     f"Game {game}: {winning_model.model_name} won, score={winning_model.wins}"
+                # )
 
+        # Sort list
+        self.models.sort(key=lambda x: x.wins, reverse=True)
         for m in self.models:
             print(m.model_name, m.wins)
 
-    def _execute_game(self, model1: Model, model2: Model) -> Model:
+    def _execute_game(self, model1: Model, model2: Model, render: bool) -> Model:
         """Will execute one game, randomly assign models to the starting player
 
         Args:
@@ -90,12 +92,20 @@ class TOPP:
                 else p2.neural_net.predict(state)
             )
             next_state, reward, terminated = self.env.step(action)
+            if render:
+                print(
+                    f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={state.actions[action]}"
+                )
+                next_state.render()
 
             # Update score and state
             cumulative_rewards += reward
             episode_length += 1
             state = next_state
 
+        if render:
+            print(f"reward={cumulative_rewards}, steps={episode_length}")
+            print()
         # Return winning model
         return p1 if cumulative_rewards == 1 else p2
 

@@ -15,6 +15,7 @@ class RLAgent:
         save_interval: int,
         session_uuid: str = None,
         episode_nr: int = 0,
+        render: bool = False,
     ):
         """Initialize the agent
         Args:
@@ -37,6 +38,7 @@ class RLAgent:
         else:
             self.session_uuid = session_uuid
         self.episode_nr = int(episode_nr)
+        self.render = render
         self.game_name = env.state.__class__.__name__
 
     def train(self):
@@ -61,24 +63,24 @@ class RLAgent:
                 action = self.policy.select_action(state, training_mode=True)
 
                 # Perform action
-                # print(
-                #     f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={state.actions[action]}"
-                # )
                 next_state, reward, terminated = self.env.step(action)
+                if self.render:
+                    print(
+                        f"Epoch {episode_length}: State={state.current_state}, Player={state.current_player}, selected action={state.actions[action]}"
+                    )
+                    next_state.render()
 
                 # Update score and state
                 cumulative_rewards += reward
                 episode_length += 1
                 state = next_state
 
-                # Render
-                next_state.render()
-
             # Episode is done, update
             self.policy.update(episode_length)
             print(
                 f"Episode {episode}: reward={cumulative_rewards}, steps={episode_length}"
             )
+            print()
 
             # Save
             if episode % self.save_interval == 0:
@@ -86,14 +88,3 @@ class RLAgent:
 
         # Save final model
         self.policy.save(self.session_uuid, self.game_name, str(episode))
-
-    def evaluate(self, games):
-        """This will initialize the The Tournament of Progressive Policies (TOPP):
-        Each saved model will compete in a round-robin fashion against the
-        other models in a series of games. The TOPP winner will be saved.
-
-        Args:
-            games (int): number of games in one series
-        """
-        topp = TOPP(self.session_uuid, self.env)
-        topp.play(games)
