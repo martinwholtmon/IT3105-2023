@@ -5,7 +5,7 @@ Note: Subject to refactor as the policy is really the weights of the deep learni
 from mcts import mcts
 from state_manager import State
 from neural_net import ANET
-from helpers import build_model_path, save_config
+from helpers import build_model_path, update_config
 
 
 class Policy:
@@ -89,6 +89,6 @@ class Policy:
         filepath = build_model_path(f"{game_name}_{episode}_{session_uuid}.pth")
         self.neural_net.save(filepath)
 
-        # Save config
+        # update config
         custom_info = {"session_uuid": session_uuid, "episode_nr": episode}
-        save_config(session_uuid, {"custom": custom_info})
+        update_config(session_uuid, {"custom": custom_info})

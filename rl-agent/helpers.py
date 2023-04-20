@@ -60,7 +60,7 @@ def get_latest_model_filename(uuid: str) -> str:
     return best_model
 
 
-def save_config(uuid: str, custom_info: dict = None):
+def save_config(uuid: str = None):
     """Will save the current settings to config
 
     Args:
@@ -68,6 +68,22 @@ def save_config(uuid: str, custom_info: dict = None):
     """
     # Load config file
     config = load_config()
+
+    # Save
+    filename = BASEDIR_MODELS / f"{uuid}.json"
+    with open(filename, "w") as fp:
+        json.dump(config, fp)
+
+
+def update_config(uuid: str, custom_info: dict = None):
+    """Update a config file
+
+    Args:
+        uuid (str, optional): Session id
+        custom_info (dict, optional): _description_. Defaults to None.
+    """
+    # Load config file
+    config = load_config(uuid)
 
     # Add/update custom info
     if custom_info is not None:
