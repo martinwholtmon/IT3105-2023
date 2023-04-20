@@ -11,6 +11,7 @@
             82
         ],
         "activation_function": "relu",
+        "optimizer_algo": "Adam",
         "learning_rate": 0.01,
         "batch_size": 100,
         "discount_factor": 1,

@@ -21,6 +21,7 @@ class ANET(nn.Module):
         output_lenght: int,
         hidden_layers: list[int] = [128, 128, 128],
         activation_function: str = "relu",
+        optimizer_algo: str = "Adam",
         learning_rate: float = 0.001,
         batch_size: int = 32,
         discount_factor: int = 1,  # assumed to be 1
@@ -36,6 +37,7 @@ class ANET(nn.Module):
             output_lenght (int):  Max output params (largest action space)
             hidden_layers (list[int], optional): Number of units (neurons) per layer. Defaults to [128, 128, 128].
             activation_function (str, optional): Activation function to use: linear, sigmoid, tanh, relu. Defaults to "relu".
+            optimizer_algo (str, optional): Optimizer to use: Adagrad, Stochastic Gradient Descent (sgd), RMSProp, or Adam. Defaults to Adam.
             learning_rate (float, optional): The rate of which the network will learn (0,1]. Defaults to 0.001.
             batch_size (int, optional): Minibatch size for each gradient update. Defaults to 32.
             discount_factor (int, optional): Reward importance [0,1]. Defaults to 1.
@@ -86,7 +88,9 @@ class ANET(nn.Module):
         self.loss_function = nn.CrossEntropyLoss()
 
         # Define optimizer
-        self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+        self.optimizer = set_optimizer_class(
+            optimizer_algo, self.parameters(), learning_rate
+        )
 
         # Init weights and biases
         self.apply(init_weights_uniform)
@@ -325,6 +329,34 @@ def set_activation_class(activation_function: str) -> callable:
         case _:
             raise ValueError(
                 f"{activation_function} is not supported, please use a supported activation function: linear, sigmoid, tanh, or RELU"
+            )
+
+
+def set_optimizer_class(
+    optimizer_algo: str, model_params, learning_rate: float
+) -> callable:
+    """Set the optimizer to use in the model
+
+    Args:
+        optimizer_algo (str): Type of optimizer to use (name)
+        model_params (Iterator[Parameter]): the models parameter
+        learning_rate (float): The learning rate
+
+    Returns:
+        callable: The optimizer object
+    """
+    match optimizer_algo.lower():
+        case "adagrad":
+            return optim.Adagrad(model_params, lr=learning_rate)
+        case "sgd":
+            return optim.SGD(model_params, lr=learning_rate)
+        case "rmsprop":
+            return optim.RMSprop(model_params, lr=learning_rate)
+        case "adam":
+            return optim.Adam(model_params, lr=learning_rate)
+        case _:
+            raise ValueError(
+                f"{optimizer_algo} is not supported, please use a supported optimizer: Adagrad, Stochastic Gradient Descent (sgd), RMSProp, or Adam"
             )
 
 
