@@ -46,7 +46,7 @@ def main():
     # If we want to load old session and continue training,
     # update this variable to the session UUID
     # TODO: Add this directly to config file
-    session_uuid = "fef3bce1-7fe0-45fe-bb21-7fe0fd348dbd"
+    session_uuid = None
     render = False
 
     # Load config
