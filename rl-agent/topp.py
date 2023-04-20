@@ -63,7 +63,7 @@ class TOPP:
         # Sort list
         self.models.sort(key=lambda x: x.wins, reverse=True)
         for m in self.models:
-            print(m.model_name, m.wins)
+            print(f"Iteration/name: {m.model_name} - Score: {m.wins}")
 
     def _execute_game(self, model1: Model, model2: Model, render: bool) -> Model:
         """Will execute one game, randomly assign models to the starting player
