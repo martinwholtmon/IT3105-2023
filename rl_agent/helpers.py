@@ -115,7 +115,9 @@ def load_config(uuid: str = None) -> dict:
         filename = f"{uuid}.json"
 
     # Load config
-    with open(dir / filename, "r") as f:
+    path = dir / filename
+    print(f"Loading config: {path}")
+    with open(path, "r") as f:
         config = json.load(f)
     return config
 
