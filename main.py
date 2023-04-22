@@ -1,9 +1,9 @@
 import argparse
 import uuid
-from agent import RLAgent
-from policy import Policy
-from topp import TOPP
-from helpers import (
+from rl_agent.agent import RLAgent
+from rl_agent.policy import Policy
+from rl_agent.topp import TOPP
+from rl_agent.helpers import (
     load_config,
     load_env,
     load_net,

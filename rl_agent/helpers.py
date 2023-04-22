@@ -1,10 +1,10 @@
 """Helper functions"""
 import json
 from pathlib import Path
-from state_manager import Env, State
-from games.hex import Hex
-from games.nim import Nim
-from neural_net import ANET
+from rl_agent.state_manager import Env, State
+from rl_agent.games.hex import Hex
+from rl_agent.games.nim import Nim
+from rl_agent.neural_net import ANET
 
 TOPDIR = Path(__file__).parent.parent
 BASEDIR_MODELS = TOPDIR / "models"
@@ -108,7 +108,7 @@ def load_config(uuid: str = None) -> dict:
     """
     # Set dir and filename
     if uuid is None:
-        dir = TOPDIR / "rl-agent"
+        dir = TOPDIR / "rl_agent"
         filename = "config.json"
     else:
         dir = BASEDIR_MODELS

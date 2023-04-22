@@ -8,8 +8,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from state_manager import State
-from rbuf import RBUF, Replay
+from rl_agent.state_manager import State
+from rl_agent.rbuf import RBUF, Replay
 
 
 class ANET(nn.Module):

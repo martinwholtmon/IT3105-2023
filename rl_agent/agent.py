@@ -1,7 +1,7 @@
 """The Reinforcement learning agent
 """
-from state_manager import Env
-from policy import Policy
+from rl_agent.state_manager import Env
+from rl_agent.policy import Policy
 
 
 class RLAgent:

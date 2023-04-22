@@ -1,9 +1,9 @@
 import itertools
 import random
 from dataclasses import dataclass
-from state_manager import Env
-from neural_net import ANET
-from helpers import (
+from rl_agent.state_manager import Env
+from rl_agent.neural_net import ANET
+from rl_agent.helpers import (
     get_model_filenames,
     load_config,
     load_env,

@@ -2,10 +2,10 @@
 
 Note: Subject to refactor as the policy is really the weights of the deep learning module
 """
-from mcts import mcts
-from state_manager import State
-from neural_net import ANET
-from helpers import build_model_path, update_config
+from rl_agent.mcts import mcts
+from rl_agent.state_manager import State
+from rl_agent.neural_net import ANET
+from rl_agent.helpers import build_model_path, update_config
 
 
 class Policy:

@@ -3,7 +3,7 @@
 import math
 import copy
 import numpy as np
-from state_manager import State
+from rl_agent.state_manager import State
 
 
 class Nim(State):

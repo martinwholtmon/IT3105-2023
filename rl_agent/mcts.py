@@ -3,8 +3,8 @@ from __future__ import annotations
 import random
 import time
 import numpy as np
-from state_manager import State
-from neural_net import ANET
+from rl_agent.state_manager import State
+from rl_agent.neural_net import ANET
 
 
 class Node:

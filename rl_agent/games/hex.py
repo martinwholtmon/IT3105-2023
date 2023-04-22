@@ -3,7 +3,7 @@
 from __future__ import annotations
 import copy
 import numpy as np
-from state_manager import State
+from rl_agent.state_manager import State
 
 
 class _Cell:
