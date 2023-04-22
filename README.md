@@ -6,7 +6,7 @@ Course: https://www.idi.ntnu.no/emner/it3105/
 ## Usage
 You can initiate training by executing: </br>`python3 ./rl-agent/main.py`
 
-To run TOPP, you must provide an uuid: </br>`python3 ./rl-agent/main.py {uuid}`
+To run TOPP, you must provide an uuid and the flagg: </br>`python3 ./rl-agent/main.py {uuid} --topp`
 
 The config will be saved to file, same with the model. See the config file to adjust model/system parameters. 
 
