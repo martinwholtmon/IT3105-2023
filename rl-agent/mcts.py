@@ -150,8 +150,8 @@ def mcts(
     # Normalize
     action_probabilities = action_probabilities / np.sum(action_probabilities)
 
-    # find best action and retrieve the subtree
-    action = np.argmax(action_probabilities)
+    # find best action (roulette wheel) and retrieve the subtree
+    action = np.random.choice(range(len(state.actions)), p=action_probabilities)
     subtree = None
     for tree in root.children:
         if tree.action == action:
