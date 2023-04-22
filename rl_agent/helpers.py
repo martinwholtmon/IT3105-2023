@@ -108,7 +108,7 @@ def load_config(uuid: str = None) -> dict:
     """
     # Set dir and filename
     if uuid is None:
-        dir = TOPDIR / "rl_agent"
+        dir = TOPDIR
         filename = "config.json"
     else:
         dir = BASEDIR_MODELS
